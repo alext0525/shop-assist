@@ -4,50 +4,51 @@ export default function CompareModal({ products, onClose }) {
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    document.body.style.overflow = 'hidden';
+    return () => { window.removeEventListener('keydown', handler); document.body.style.overflow = ''; };
   }, [onClose]);
 
-  const allSpecs = [...new Set(products.flatMap(p => p.specs || []))];
-
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-12 overflow-y-auto" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
-      <div className="w-full max-w-5xl rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-8 overflow-y-auto" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)' }} onClick={onClose}>
+      <div className="w-full max-w-6xl rounded-2xl overflow-hidden mb-8" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 25px 60px rgba(0,0,0,0.4)' }} onClick={e => e.stopPropagation()}>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
+        <div className="flex items-center justify-between px-6 py-4" style={{ background: 'linear-gradient(135deg, #7c3aed, #db2777)' }}>
           <div>
-            <h2 className="text-lg font-bold" style={{ color: 'var(--text)' }}>Comparison</h2>
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{products.length} products selected</p>
+            <h2 className="text-lg font-bold text-white">Side-by-side Comparison</h2>
+            <p className="text-white/70 text-xs">{products.length} products · Press Esc to close</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center transition-all" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/20 hover:bg-white/30 transition-all text-white">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm" style={{ minWidth: `${200 + products.length * 200}px` }}>
+          <table className="w-full text-sm" style={{ minWidth: `${180 + products.length * 220}px` }}>
+            {/* Product headers */}
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                <th className="text-left px-5 py-4 font-medium text-xs uppercase tracking-wider w-40" style={{ color: 'var(--text-muted)', background: 'var(--surface-2)' }}>Feature</th>
+              <tr style={{ borderBottom: '2px solid var(--border)' }}>
+                <th className="px-5 py-4 text-left w-40 text-xs uppercase tracking-wider font-semibold" style={{ color: 'var(--text-muted)', background: 'var(--surface-2)' }}>Feature</th>
                 {products.map((p, i) => (
-                  <th key={i} className="px-5 py-4 text-left" style={{ background: 'var(--surface)' }}>
+                  <th key={i} className="px-5 py-4 text-left align-top" style={{ background: 'var(--surface)' }}>
                     <div className="flex flex-col gap-2">
                       {p.imageUrl && (
-                        <img src={p.imageUrl} alt={p.name} className="w-14 h-14 object-cover rounded-lg" onError={e => e.target.style.display = 'none'} />
+                        <img src={p.imageUrl} alt={p.name} className="w-16 h-16 object-cover rounded-xl" onError={e => e.target.style.display = 'none'} />
                       )}
-                      <div className="font-semibold text-sm leading-snug" style={{ color: 'var(--text)' }}>{p.name}</div>
-                      {p.price && <span className="text-xs font-bold" style={{ color: '#16a34a' }}>{p.price}</span>}
-                      <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium" style={{ color: 'var(--accent)' }} onClick={e => e.stopPropagation()}>
-                        View product →
+                      <div className="font-bold text-sm leading-snug" style={{ color: 'var(--text)' }}>{p.name}</div>
+                      {p.price && <span className="text-sm font-bold" style={{ color: '#16a34a' }}>{p.price}</span>}
+                      <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold flex items-center gap-1" style={{ color: '#7c3aed' }} onClick={e => e.stopPropagation()}>
+                        View product <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                       </a>
                     </div>
                   </th>
                 ))}
               </tr>
             </thead>
+
             <tbody>
-              <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--surface-2)' }}>
-                <td className="px-5 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Match Score</td>
+              {/* Match score */}
+              <Row label="Match Score" alt>
                 {products.map((p, i) => (
                   <td key={i} className="px-5 py-3">
                     <div className="flex items-center gap-2">
@@ -58,32 +59,83 @@ export default function CompareModal({ products, onClose }) {
                     </div>
                   </td>
                 ))}
-              </tr>
-              <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                <td className="px-5 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Why it fits</td>
+              </Row>
+
+              {/* Why it fits */}
+              <Row label="Why it fits">
                 {products.map((p, i) => (
                   <td key={i} className="px-5 py-3 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>{p.reason}</td>
                 ))}
-              </tr>
-              {allSpecs.map((spec, si) => (
-                <tr key={si} style={{ borderBottom: '1px solid var(--border)', background: si % 2 === 0 ? 'var(--surface-2)' : 'var(--surface)' }}>
-                  <td className="px-5 py-3 text-xs font-medium" style={{ color: 'var(--text-muted)' }}>{spec}</td>
-                  {products.map((p, pi) => (
-                    <td key={pi} className="px-5 py-3 text-xs" style={{ color: 'var(--text)' }}>
-                      {(p.specs || []).includes(spec) ? (
-                        <span className="flex items-center gap-1.5">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                          Yes
+              </Row>
+
+              {/* Community note */}
+              <Row label="Community says" alt>
+                {products.map((p, i) => (
+                  <td key={i} className="px-5 py-3 text-xs italic leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                    {p.communityNote ? `"${p.communityNote}"` : '—'}
+                  </td>
+                ))}
+              </Row>
+
+              {/* Pros */}
+              <Row label="Pros">
+                {products.map((p, i) => (
+                  <td key={i} className="px-5 py-3">
+                    <div className="flex flex-col gap-1">
+                      {(p.pros || []).map((pro, j) => (
+                        <div key={j} className="flex items-start gap-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
+                          <span style={{ color: '#16a34a' }}>✓</span> {pro}
+                        </div>
+                      ))}
+                      {!p.pros?.length && <span className="text-xs" style={{ color: 'var(--text-faint)' }}>—</span>}
+                    </div>
+                  </td>
+                ))}
+              </Row>
+
+              {/* Cons */}
+              <Row label="Cons" alt>
+                {products.map((p, i) => (
+                  <td key={i} className="px-5 py-3">
+                    <div className="flex flex-col gap-1">
+                      {(p.cons || []).map((con, j) => (
+                        <div key={j} className="flex items-start gap-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
+                          <span style={{ color: '#dc2626' }}>✗</span> {con}
+                        </div>
+                      ))}
+                      {!p.cons?.length && <span className="text-xs" style={{ color: 'var(--text-faint)' }}>—</span>}
+                    </div>
+                  </td>
+                ))}
+              </Row>
+
+              {/* Specs */}
+              <Row label="Key Specs">
+                {products.map((p, i) => (
+                  <td key={i} className="px-5 py-3">
+                    <div className="flex flex-wrap gap-1.5">
+                      {(p.specs || []).map((spec, j) => (
+                        <span key={j} className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-faint)' }}>
+                          {spec}
                         </span>
-                      ) : '—'}
-                    </td>
-                  ))}
-                </tr>
-              ))}
+                      ))}
+                    </div>
+                  </td>
+                ))}
+              </Row>
             </tbody>
           </table>
         </div>
       </div>
     </div>
+  );
+}
+
+function Row({ label, children, alt }) {
+  return (
+    <tr style={{ borderBottom: '1px solid var(--border)', background: alt ? 'var(--surface-2)' : 'var(--surface)' }}>
+      <td className="px-5 py-3 text-xs font-semibold uppercase tracking-wider align-top" style={{ color: 'var(--text-muted)' }}>{label}</td>
+      {children}
+    </tr>
   );
 }

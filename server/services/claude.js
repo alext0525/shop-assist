@@ -16,6 +16,10 @@ export const CATEGORY_CONTEXT = {
   'office-chair': 'ergonomic office chairs, gaming chairs, executive chairs, mesh chairs, lumbar support',
   smartwatch: 'smartwatches, fitness trackers, hybrid watches, Apple Watch, sports watches',
   'running-shoes': 'road running shoes, trail running shoes, everyday trainers, minimalist shoes, stability shoes',
+  speakers: 'Bluetooth speakers, bookshelf speakers, soundbars, portable speakers, party speakers, home audio',
+  tablet: 'iPad, Android tablets, Windows tablets, drawing tablets, e-readers',
+  tv: '4K TVs, OLED TVs, QLED TVs, smart TVs, gaming TVs, budget TVs, large screen TVs',
+  bike: 'road bikes, mountain bikes, e-bikes, commuter bikes, gravel bikes, hybrid bikes',
 };
 
 const VAGUE_QUESTION_COUNT = 3;
@@ -93,15 +97,16 @@ export async function generateSearchQueries({ category, mode, previousQA }) {
 Based on these user preferences:
 ${context}
 
-Generate ${isVague ? 5 : 8} specific web search queries to find the best ${category} products that match their needs.
-Make queries specific and targeted (include price ranges, specs, etc. when relevant).
-Include queries like "best [category] [year] review" and "top [category] [specific feature]".
+Generate ${isVague ? 6 : 10} search queries to find the best ${category} products and reviews.
+Mix two types:
+1. Product-finding queries: "best [specific type] [year] site:amazon.com OR site:bestbuy.com OR site:newegg.com"
+2. Review/opinion queries: "best [specific type] reddit review pros cons 2024" or "[product type] worth buying community opinion"
 
 Return ONLY a JSON array of search query strings. No explanation.`;
 
   const msg = await getClient().messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 512,
+    max_tokens: 600,
     messages: [{ role: 'user', content: prompt }],
   });
 
@@ -114,40 +119,46 @@ export async function rankAndFormatResults({ category, mode, previousQA, rawResu
   const isVague = mode === 'vague';
   const targetCount = isVague ? 10 : 7;
   const context = previousQA.map((qa) => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
-  const feedbackNote = feedback ? `\n\nUser refinement feedback: "${feedback}"\nPrioritise this feedback when ranking.` : '';
+  const feedbackNote = feedback ? `\n\nUser refinement feedback: "${feedback}"\nPrioritise this when ranking.` : '';
 
   const prompt = `You are a shopping expert for ${category}.
 
 User preferences:
 ${context}${feedbackNote}
 
-Raw search results:
+Raw search results (includes product pages AND review/community discussions):
 ${JSON.stringify(rawResults, null, 2)}
 
-Available images (try to match to products by domain or content):
+Available images (match to products by URL domain or product name):
 ${images.slice(0, 20).join('\n')}
 
-Select and rank the top ${targetCount} products that best match the user's needs.
-For each product extract: name, price (if available), url, a 2-sentence reason why it matches their needs, 3-5 key specs, and try to find the best matching imageUrl from the available images list (match by domain name or product relevance — use null if none match well).
+Task: Select the top ${targetCount} distinct products. For each product:
+- Prefer URLs from actual retailer/product pages (amazon.com, bestbuy.com, newegg.com, bhphotovideo.com, manufacturer sites) over review aggregators
+- Extract real prices where visible in the content; use "Check price" if not found
+- Extract community sentiment from review content in the results (reddit posts, review articles)
+- Match an imageUrl from the available images list using domain similarity
 
-Return ONLY a JSON array:
+Return ONLY a valid JSON array, no markdown:
 [
   {
-    "name": "Product Name",
+    "name": "Full Product Name",
     "price": "$X" or "~$X" or "Check price",
-    "url": "https://...",
+    "url": "https://retailer-or-product-page.com/...",
     "imageUrl": "https://... or null",
-    "reason": "Why this matches their needs in 2 sentences.",
-    "specs": ["Spec 1", "Spec 2", "Spec 3"],
+    "reason": "2 sentences on why this matches the user's specific needs.",
+    "pros": ["Praised aspect 1", "Praised aspect 2", "Praised aspect 3"],
+    "cons": ["Common criticism 1", "Common criticism 2"],
+    "communityNote": "1 sentence summarising overall community/reviewer opinion.",
+    "specs": ["Spec 1", "Spec 2", "Spec 3", "Spec 4"],
     "score": 95
   }
 ]
 
-Sort by score descending. No explanation outside the JSON.`;
+Sort by score descending.`;
 
   const msg = await getClient().messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 4096,
+    max_tokens: 6000,
     messages: [{ role: 'user', content: prompt }],
   });
 
@@ -174,17 +185,18 @@ User feedback: "${feedback}"
 
 Based on this feedback, do two things:
 1. Write a warm 1-2 sentence acknowledgement of their feedback
-2. Generate 5-7 new search queries that address their feedback while preserving their original needs
+2. Generate 6-8 new search queries that address their feedback while preserving their original needs.
+   Mix product-finding queries and review/opinion queries.
 
 Return ONLY valid JSON (no markdown):
 {
   "message": "Your acknowledgement here.",
-  "queries": ["query 1", "query 2", "query 3", "query 4", "query 5"]
+  "queries": ["query 1", "query 2", "query 3", "query 4", "query 5", "query 6"]
 }`;
 
   const msg = await getClient().messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 600,
+    max_tokens: 700,
     messages: [{ role: 'user', content: prompt }],
   });
 
