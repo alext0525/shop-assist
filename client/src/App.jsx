@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchJSON } from './fetchJSON';
+import { useCurrency } from './hooks/useCurrency';
 import CategorySelector from './components/CategorySelector';
 import ModeSelector from './components/ModeSelector';
 import QuestionFlow from './components/QuestionFlow';
@@ -19,6 +20,8 @@ export default function App() {
     const saved = localStorage.getItem('theme');
     return saved ? saved === 'dark' : false;
   });
+
+  const { currency, convertPrice } = useCurrency();
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark);
@@ -54,13 +57,23 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
-      <Header onReset={handleReset} showReset={stage !== STAGES.CATEGORY} isDark={isDark} setIsDark={setIsDark} />
-      <main className="flex-1 flex flex-col items-center px-4 pb-20">
+      <Header onReset={handleReset} showReset={stage !== STAGES.CATEGORY} isDark={isDark} setIsDark={setIsDark} currency={currency} />
+      <main className="flex-1 flex flex-col items-center px-4 pb-24">
         {stage === STAGES.CATEGORY && <CategorySelector onSelect={(c) => { setCategory(c); setStage(STAGES.MODE); }} />}
         {stage === STAGES.MODE && <ModeSelector category={category} onSelect={(m) => { setMode(m); setStage(STAGES.QUESTIONS); }} onBack={() => setStage(STAGES.CATEGORY)} />}
         {stage === STAGES.QUESTIONS && <QuestionFlow category={category} mode={mode} onComplete={handleQuestionsComplete} onBack={() => setStage(STAGES.MODE)} error={error} />}
         {stage === STAGES.SEARCHING && <SearchingState category={category} />}
-        {stage === STAGES.RESULTS && <ProductResults products={products} setProducts={setProducts} category={category} mode={mode} allQA={allQA} onReset={handleReset} />}
+        {stage === STAGES.RESULTS && (
+          <ProductResults
+            products={products}
+            setProducts={setProducts}
+            category={category}
+            mode={mode}
+            allQA={allQA}
+            onReset={handleReset}
+            convertPrice={convertPrice}
+          />
+        )}
       </main>
     </div>
   );

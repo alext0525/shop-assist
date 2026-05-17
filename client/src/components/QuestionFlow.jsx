@@ -1,11 +1,33 @@
 import { useState, useEffect, useRef } from 'react';
 import { fetchJSON } from '../fetchJSON';
 
-const LABELS = { keyboard: 'Keyboard', backpack: 'Backpack', gpu: 'Graphics Card', headphones: 'Headphones', monitor: 'Monitor', mouse: 'Mouse', laptop: 'Laptop', smartphone: 'Smartphone', 'office-chair': 'Office Chair', smartwatch: 'Smartwatch', 'running-shoes': 'Running Shoes' };
+const LABELS = {
+  keyboard: 'Keyboard', backpack: 'Backpack', gpu: 'Graphics Card', headphones: 'Headphones',
+  monitor: 'Monitor', mouse: 'Mouse', laptop: 'Laptop', smartphone: 'Smartphone',
+  'office-chair': 'Office Chair', smartwatch: 'Smartwatch', 'running-shoes': 'Running Shoes',
+  speakers: 'Speakers', tablet: 'Tablet', tv: 'TV', bike: 'Bike',
+};
+
+const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+// Normalise a question item to { question, options }
+function normalise(q) {
+  if (typeof q === 'string') return { question: q, options: null };
+  return { question: q.question, options: q.options || null };
+}
+
+function getKey(q) {
+  return normalise(q).question;
+}
+
+function isOtherOption(opt) {
+  return opt.toLowerCase().startsWith('e –') || opt.toLowerCase().includes('other');
+}
 
 export default function QuestionFlow({ category, mode, onComplete, onBack, error }) {
   const [questions, setQuestions] = useState([]);
-  const [answers, setAnswers] = useState({});
+  const [answers, setAnswers] = useState({});   // key → answer string
+  const [otherText, setOtherText] = useState({}); // key → custom "other" text
   const [allQA, setAllQA] = useState([]);
   const [batchIndex, setBatchIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -14,7 +36,7 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
   const bottomRef = useRef(null);
 
   useEffect(() => { fetchQuestions([], 0); }, []);
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [questions]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [questions, loading]);
 
   async function fetchQuestions(previousQA, batch) {
     setLoading(true);
@@ -26,7 +48,7 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
         body: JSON.stringify({ category, mode, previousQA, batchIndex: batch }),
       });
       if (data.done) { onComplete(previousQA); }
-      else { setQuestions(data.questions); setAnswers({}); }
+      else { setQuestions(data.questions); setAnswers({}); setOtherText({}); }
     } catch (err) {
       setFetchError(err.message || 'Could not reach the server. Is it running?');
     } finally {
@@ -34,16 +56,27 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
     }
   }
 
-  const allAnswered = questions.length > 0 && questions.every(q => (answers[q] || '').trim().length > 0);
+  function getFinalAnswer(key) {
+    const ans = answers[key] || '';
+    if (isOtherOption(ans)) return otherText[key]?.trim() || '';
+    return ans.trim();
+  }
+
+  const allAnswered = questions.length > 0 && questions.every(q => getFinalAnswer(getKey(q)).length > 0);
 
   async function handleSubmit() {
     if (!allAnswered) return;
     setSubmitting(true);
-    const batchQA = questions.map(q => ({ question: q, answer: answers[q].trim() }));
+
+    const batchQA = questions.map(q => ({
+      question: normalise(q).question,
+      answer: getFinalAnswer(getKey(q)),
+    }));
     const newAllQA = [...allQA, ...batchQA];
     setAllQA(newAllQA);
     const next = batchIndex + 1;
     setBatchIndex(next);
+
     if (mode === 'vague') { onComplete(newAllQA); return; }
     await fetchQuestions(newAllQA, next);
     setSubmitting(false);
@@ -55,7 +88,7 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
   return (
     <div className="w-full max-w-xl mx-auto mt-10 flex flex-col gap-5">
       <div className="text-center mb-1">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium mb-3" style={{ background: 'var(--accent-light)', color: 'var(--accent-text)' }}>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold mb-3" style={{ background: 'var(--accent-light)', color: 'var(--accent-text)' }}>
           {mode === 'vague' ? '⚡ Quick Match' : '🎯 Deep Dive'} — {LABELS[category] || category}
         </div>
         {mode === 'specific' && (
@@ -65,6 +98,7 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
         )}
       </div>
 
+      {/* Previous answers (dimmed) */}
       {allQA.length > 0 && (
         <div className="flex flex-col gap-2 opacity-50">
           {allQA.map((qa, i) => (
@@ -79,7 +113,7 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
       {fetchError && (
         <div className="p-4 rounded-xl text-sm flex flex-col gap-3" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444' }}>
           <p><strong>Error:</strong> {fetchError}</p>
-          <button onClick={() => fetchQuestions(allQA, batchIndex)} className="self-start px-3 py-1.5 rounded-lg text-xs font-medium" style={{ background: 'rgba(239,68,68,0.15)', color: '#dc2626' }}>Retry</button>
+          <button onClick={() => fetchQuestions(allQA, batchIndex)} className="self-start px-3 py-1.5 rounded-lg text-xs font-medium" style={{ background: 'rgba(239,68,68,0.15)' }}>Retry</button>
         </div>
       )}
 
@@ -95,24 +129,84 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {questions.map((question, i) => (
-            <div key={`${batchIndex}-${i}`} className="p-5 rounded-2xl transition-all" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow)' }}>
-              <label className="block text-sm font-medium mb-3" style={{ color: 'var(--text)' }}>
-                <span className="font-bold mr-2" style={{ color: 'var(--accent)' }}>Q{allQA.length + i + 1}.</span>
-                {question}
-              </label>
-              <textarea
-                value={answers[question] || ''}
-                onChange={e => setAnswers(p => ({ ...p, [question]: e.target.value }))}
-                placeholder="Type your answer here..."
-                rows={2}
-                className="w-full rounded-xl px-4 py-3 text-sm resize-none transition-all outline-none"
-                style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-                onBlur={e => e.target.style.borderColor = 'var(--border)'}
-              />
-            </div>
-          ))}
+          {questions.map((q, i) => {
+            const { question, options } = normalise(q);
+            const key = question;
+            const selectedOpt = answers[key] || '';
+            const showOtherInput = selectedOpt && isOtherOption(selectedOpt);
+
+            return (
+              <div key={`${batchIndex}-${i}`} className="p-5 rounded-2xl transition-all" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow)' }}>
+                <p className="text-sm font-medium mb-4" style={{ color: 'var(--text)' }}>
+                  <span className="font-bold mr-2" style={{ color: 'var(--accent)' }}>Q{allQA.length + i + 1}.</span>
+                  {question}
+                </p>
+
+                {options ? (
+                  <div className="flex flex-col gap-2">
+                    {options.map((opt, oi) => {
+                      const letter = LETTERS[oi] || String.fromCharCode(65 + oi);
+                      const isSelected = selectedOpt === opt;
+                      const isOther = isOtherOption(opt);
+                      return (
+                        <button
+                          key={oi}
+                          onClick={() => setAnswers(p => ({ ...p, [key]: opt }))}
+                          className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm text-left transition-all duration-150 hover:scale-[1.01] active:scale-[0.99]"
+                          style={isSelected ? {
+                            background: 'var(--accent-light)',
+                            border: '2px solid var(--accent)',
+                            color: 'var(--text)',
+                          } : {
+                            background: 'var(--surface-2)',
+                            border: '1px solid var(--border)',
+                            color: 'var(--text-muted)',
+                          }}
+                        >
+                          <span
+                            className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold"
+                            style={isSelected
+                              ? { background: 'var(--accent)', color: 'white' }
+                              : { background: 'var(--border)', color: 'var(--text-muted)' }
+                            }
+                          >
+                            {isSelected && !isOther
+                              ? <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                              : letter
+                            }
+                          </span>
+                          <span>{opt.replace(/^[A-F]\s*[–—-]\s*/i, '')}</span>
+                        </button>
+                      );
+                    })}
+
+                    {showOtherInput && (
+                      <textarea
+                        autoFocus
+                        value={otherText[key] || ''}
+                        onChange={e => setOtherText(p => ({ ...p, [key]: e.target.value }))}
+                        placeholder="Please specify..."
+                        rows={2}
+                        className="w-full rounded-xl px-4 py-3 text-sm resize-none outline-none transition-all mt-1"
+                        style={{ background: 'var(--surface-2)', border: '2px solid var(--accent)', color: 'var(--text)' }}
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <textarea
+                    value={answers[key] || ''}
+                    onChange={e => setAnswers(p => ({ ...p, [key]: e.target.value }))}
+                    placeholder="Type your answer here..."
+                    rows={2}
+                    className="w-full rounded-xl px-4 py-3 text-sm resize-none outline-none transition-all"
+                    style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text)' }}
+                    onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+                    onBlur={e => e.target.style.borderColor = 'var(--border)'}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 

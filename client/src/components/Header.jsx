@@ -1,4 +1,4 @@
-export default function Header({ onReset, showReset, isDark, setIsDark }) {
+export default function Header({ onReset, showReset, isDark, setIsDark, currency }) {
   return (
     <header className="w-full flex items-center justify-between px-6 py-3.5 sticky top-0 z-40" style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', boxShadow: 'var(--shadow)' }}>
       <button onClick={onReset} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -9,6 +9,14 @@ export default function Header({ onReset, showReset, isDark, setIsDark }) {
       </button>
 
       <div className="flex items-center gap-2">
+        {/* Currency indicator */}
+        {currency?.country && (
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+            <span>🌍</span>
+            <span>{currency.code}</span>
+          </div>
+        )}
+
         {showReset && (
           <button onClick={onReset} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all" style={{ color: 'var(--text-muted)', background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -17,6 +25,7 @@ export default function Header({ onReset, showReset, isDark, setIsDark }) {
             Start over
           </button>
         )}
+
         <button
           onClick={() => setIsDark(!isDark)}
           className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"

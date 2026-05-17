@@ -33,7 +33,7 @@ function CategoryPlaceholder({ category, rank }) {
   );
 }
 
-export default function ProductResults({ products, setProducts, category, mode, allQA, onReset }) {
+export default function ProductResults({ products, setProducts, category, mode, allQA, onReset, convertPrice = (p) => p }) {
   const [selected, setSelected] = useState(new Set());
   const [showCompare, setShowCompare] = useState(false);
 
@@ -76,6 +76,7 @@ export default function ProductResults({ products, setProducts, category, mode, 
             category={category}
             isSelected={selected.has(i)}
             onToggleSelect={() => toggleSelect(i)}
+            convertPrice={convertPrice}
           />
         ))}
       </div>
@@ -115,7 +116,7 @@ export default function ProductResults({ products, setProducts, category, mode, 
   );
 }
 
-function ProductCard({ product, rank, category, isSelected, onToggleSelect }) {
+function ProductCard({ product, rank, category, isSelected, onToggleSelect, convertPrice }) {
   const [imgError, setImgError] = useState(false);
   const rb = RANK_BADGE[rank];
   const domain = getDomain(product.url);
@@ -172,7 +173,7 @@ function ProductCard({ product, rank, category, isSelected, onToggleSelect }) {
         {/* Price badge - bottom left */}
         {product.price && (
           <div className="absolute bottom-3 left-3 px-3 py-1 rounded-full text-sm font-bold backdrop-blur-sm" style={{ background: 'rgba(22,163,74,0.9)', color: 'white' }}>
-            {product.price}
+            {convertPrice(product.price)}
           </div>
         )}
 
