@@ -388,6 +388,87 @@ function safeParseArray(text) {
   throw new Error('Could not parse product results — please try again.');
 }
 
+// --- STREAMING RANK AND FORMAT ---
+// Same prompt as rankAndFormatResults but streams each product as soon as Claude writes it
+
+export async function rankAndFormatResultsStreaming({ category, mode, previousQA, rawResults, images = [], feedback = null, country, stores, onProduct }) {
+  const isVague = mode === 'vague';
+  const targetCount = isVague ? 10 : 7;
+  const context = previousQA.map(qa => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
+  const budget = extractBudget(previousQA);
+
+  const budgetRule = budget && budget !== 'No preference'
+    ? `STRICT BUDGET: "${budget}" — exclude products clearly over this budget.` : '';
+  const regionRule = country && country !== 'United States'
+    ? `REGION: User is in ${country}. Prefer local retailers (${stores || country}).` : '';
+  const feedbackNote = feedback ? `User feedback: "${feedback}" — prioritise this.` : '';
+  const isJewelry = category.startsWith('jewelry-');
+  const jewelryExtra = isJewelry
+    ? `- communityNote MUST reference brand reputation from jewellery communities if found.` : '';
+
+  const trimmedResults = rawResults.slice(0, 12).map(r => ({
+    url: r.url, title: r.title, content: r.content?.slice(0, 300),
+  }));
+
+  const prompt = `You are a shopping expert for ${category}.
+User: ${context}
+${budgetRule} ${regionRule} ${feedbackNote}
+Search results: ${JSON.stringify(trimmedResults)}
+Images: ${images.slice(0, 8).join('\n')}
+
+Return ${targetCount} products as a JSON array. Each product on its own object. Rules:
+- Group same model variants into ONE entry with a variants array
+- URL: retailer product pages only
+- Price: only if explicitly in results, else "Check price"
+- imageUrl: best match from images or null
+- Extract community sentiment from results
+${jewelryExtra}
+
+[{"name":"...","variants":[{"config":"...","price":"...","url":"..."}],"url":"...","imageUrl":null,"reason":"2 sentences.","pros":["..."],"cons":["..."],"communityNote":"...","specs":["..."],"score":95}]
+No markdown.`;
+
+  const stream = getClient().messages.stream({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 5500,
+    messages: [{ role: 'user', content: prompt }],
+  });
+
+  let buffer = '';
+  let depth = 0;
+  let objectStart = -1;
+  const products = [];
+
+  for await (const event of stream) {
+    if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta') {
+      const newText = event.delta.text;
+      const scanFrom = buffer.length;
+      buffer += newText;
+
+      for (let i = scanFrom; i < buffer.length; i++) {
+        const c = buffer[i];
+        if (c === '{') {
+          if (depth === 0) objectStart = i;
+          depth++;
+        } else if (c === '}') {
+          depth--;
+          if (depth === 0 && objectStart >= 0) {
+            try {
+              const product = JSON.parse(buffer.slice(objectStart, i + 1));
+              if (product.name) {
+                products.push(product);
+                onProduct(product);
+              }
+            } catch { /* incomplete or invalid, skip */ }
+            objectStart = -1;
+          }
+        }
+      }
+    }
+  }
+
+  return products;
+}
+
 // --- MARKET SUMMARY ---
 
 export async function generateMarketSummary({ category, previousQA, country }) {

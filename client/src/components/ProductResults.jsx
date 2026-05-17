@@ -29,7 +29,7 @@ function EmojiPlaceholder({ category }) {
   );
 }
 
-export default function ProductResults({ products, setProducts, marketSummary, category, mode, allQA, onReset, convertPrice = p => p, region }) {
+export default function ProductResults({ products, setProducts, marketSummary, category, mode, allQA, onReset, convertPrice = p => p, region, streaming = false, searchStatus = '' }) {
   const [selected, setSelected] = useState(new Set());
   const [showCompare, setShowCompare] = useState(false);
 
@@ -38,23 +38,59 @@ export default function ProductResults({ products, setProducts, marketSummary, c
   }
 
   const answeredQA = allQA.filter(qa => qa.answer && qa.answer !== 'No preference');
+  const isLoading = streaming && products.length === 0;
+
+  // Full-screen loading state while waiting for first product
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center flex-1 gap-6 mt-24 w-full max-w-sm mx-auto anim-fadeup">
+        <div className="relative flex items-center justify-center" style={{ width: 88, height: 88 }}>
+          <div className="absolute inset-0 rounded-full" style={{ background: 'radial-gradient(circle, rgba(99,102,241,.15) 0%, transparent 70%)' }} />
+          <div className="absolute inset-1 rounded-full border-2" style={{ borderColor: 'rgba(99,102,241,.12)' }} />
+          <div className="absolute inset-2 rounded-full border-2 border-transparent" style={{ borderTopColor: 'var(--accent)', animation: 'spin 1s linear infinite' }} />
+          <div className="absolute inset-5 rounded-full border-2 border-transparent" style={{ borderTopColor: 'var(--accent-2)', animation: 'spin 1.6s linear infinite reverse' }} />
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: 'var(--accent)' }}>
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+        </div>
+        <div className="text-center">
+          <p className="text-base font-semibold mb-1" style={{ color: 'var(--text)' }}>{searchStatus || 'Searching…'}</p>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>First results will appear in a moment</p>
+        </div>
+        <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--surface-2)' }}>
+          <div className="h-full rounded-full" style={{ width: '40%', background: 'var(--gradient)', boxShadow: '0 0 10px rgba(99,102,241,.5)', animation: 'shimmer 1.8s linear infinite', backgroundSize: '400px 100%' }} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-5xl mx-auto mt-8 flex flex-col gap-6 px-2 pb-8">
 
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4 anim-fadeup">
         <div>
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold mb-2" style={{ background: 'var(--accent-light)', color: 'var(--accent-text)' }}>
             {mode === 'vague' ? '⚡ Quick Match' : '🎯 Deep Dive'} — {LABELS[category] || category}
             {region && ` · ${region.flag} ${region.country}`}
           </span>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--text)' }}>Your Top {products.length} Picks</h1>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text)' }}>
+            {streaming ? `${products.length} result${products.length !== 1 ? 's' : ''} found…` : `Your Top ${products.length} Picks`}
+          </h1>
         </div>
         <button onClick={onReset} className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium" style={{ border: '1px solid var(--border)', color: 'var(--text-muted)', background: 'var(--surface)' }}>
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
           New search
         </button>
+      </div>
+
+      {/* Disclaimer */}
+      <div className="flex items-start gap-2.5 px-4 py-3 rounded-xl text-xs" style={{ background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.2)', color: '#d97706' }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0, marginTop: 1 }}>
+          <path d="m10.29 3.86-8.6 14.9A2 2 0 0 0 3.45 22h17.1a2 2 0 0 0 1.74-2.93l-8.6-14.9a2 2 0 0 0-3.4 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <span>Prices and availability are <strong>approximate</strong> — always verify on the product page before purchasing. Links go directly to retailer listings.</span>
       </div>
 
       {/* Summary cards */}
@@ -89,15 +125,17 @@ export default function ProductResults({ products, setProducts, marketSummary, c
         )}
       </div>
 
-      <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
-        Prices are approximate — click a card to see the current price. Tick cards to compare them side by side.
-      </p>
+      {!streaming && (
+        <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
+          Tick cards to compare side by side · Click to view on retailer site
+        </p>
+      )}
 
-      {/* Product grid */}
+      {/* Product grid — cards animate in as they arrive */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {products.map((product, i) => (
           <ProductCard
-            key={i}
+            key={`${product.name}-${i}`}
             product={product}
             rank={i + 1}
             category={category}
@@ -108,18 +146,28 @@ export default function ProductResults({ products, setProducts, marketSummary, c
         ))}
       </div>
 
-      {/* Refine chat */}
-      <ResultsChat
-        category={category}
-        mode={mode}
-        allQA={allQA}
-        currentProducts={products}
-        onProductsUpdate={p => { setProducts(p); setSelected(new Set()); }}
-        region={region}
-      />
+      {/* Streaming indicator */}
+      {streaming && (
+        <div className="flex items-center justify-center gap-3 py-4 anim-fadein">
+          <div className="w-4 h-4 rounded-full border-2 border-transparent" style={{ borderTopColor: 'var(--accent)', animation: 'spin .8s linear infinite' }} />
+          <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{searchStatus || 'Finding more results…'}</span>
+        </div>
+      )}
+
+      {/* Refine chat — only available after streaming completes */}
+      {!streaming && (
+        <ResultsChat
+          category={category}
+          mode={mode}
+          allQA={allQA}
+          currentProducts={products}
+          onProductsUpdate={p => { setProducts(p); setSelected(new Set()); }}
+          region={region}
+        />
+      )}
 
       {/* Compare bar */}
-      {selected.size >= 2 && (
+      {!streaming && selected.size >= 2 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 px-6 py-4 rounded-2xl" style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-2))', boxShadow: '0 8px 32px rgba(109,40,217,0.4)', minWidth: 320 }}>
           <div className="flex-1">
             <div className="text-white font-bold text-sm">{selected.size} selected</div>
@@ -142,6 +190,8 @@ function ProductCard({ product, rank, category, isSelected, onToggleSelect, conv
   const [imgError, setImgError] = useState(false);
   const [activeVariant, setActiveVariant] = useState(0);
   const rs = RANK_STYLE[rank];
+  // Each card fades in when it arrives (streaming or not)
+  const animDelay = `${Math.min((rank - 1) * 0.06, 0.4)}s`;
 
   const hasVariants = product.variants?.length > 1;
   const currentVariant = hasVariants ? product.variants[activeVariant] : null;
@@ -151,8 +201,9 @@ function ProductCard({ product, rank, category, isSelected, onToggleSelect, conv
 
   return (
     <div
-      className="rounded-2xl overflow-hidden flex flex-col transition-all duration-200"
+      className="anim-scaleup rounded-2xl overflow-hidden flex flex-col transition-all duration-200"
       style={{
+        animationDelay: animDelay,
         background: 'var(--surface)',
         border: `2px solid ${isSelected ? 'var(--accent)' : 'var(--border)'}`,
         boxShadow: isSelected ? '0 0 0 4px var(--accent-light), var(--shadow-md)' : 'var(--shadow)',
