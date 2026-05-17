@@ -217,7 +217,7 @@ export default function QuestionFlow({ category, mode, region, onComplete, onBac
                   ref={textRef}
                   value={textAnswer}
                   onChange={e => setTextAnswer(e.target.value)}
-                  placeholder="e.g. I also need it to handle video editing, prefer aluminium build..."
+                  placeholder="Not listed / something else — type here..."
                   rows={2}
                   className="w-full rounded-xl px-4 py-3 text-sm resize-none"
                   style={{

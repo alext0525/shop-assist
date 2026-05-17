@@ -4,10 +4,26 @@
 @custom-variant light (&:where(.light, .light *));
 
 /* ── Animations ─────────────────────────────────────────── */
-@keyframes fadeUp   { from { opacity:0; transform:translateY(18px) } to { opacity:1; transform:translateY(0) } }
-@keyframes fadeIn   { from { opacity:0 }                             to { opacity:1 } }
-@keyframes slideIn  { from { opacity:0; transform:translateX(20px) } to { opacity:1; transform:translateX(0) } }
-@keyframes scaleIn  { from { opacity:0; transform:scale(.94) }       to { opacity:1; transform:scale(1) } }
+/* Flowy entrance animations with motion blur */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(28px); filter:blur(6px) }
+  60%  { filter:blur(0) }
+  to   { opacity:1; transform:translateY(0);   filter:blur(0) }
+}
+@keyframes fadeIn {
+  from { opacity:0; filter:blur(3px) }
+  to   { opacity:1; filter:blur(0) }
+}
+@keyframes slideIn {
+  from { opacity:0; transform:translateX(28px); filter:blur(6px) }
+  60%  { filter:blur(0) }
+  to   { opacity:1; transform:translateX(0);    filter:blur(0) }
+}
+@keyframes scaleUp {
+  from { opacity:0; transform:scale(.88) translateY(12px); filter:blur(4px) }
+  60%  { filter:blur(0) }
+  to   { opacity:1; transform:scale(1)   translateY(0);    filter:blur(0) }
+}
 @keyframes shimmer  { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
 @keyframes spin     { to { transform:rotate(360deg) } }
 @keyframes pulse-ring {
@@ -30,10 +46,13 @@
   66%     { transform:translate(40px,-30px) scale(1.1) }
 }
 
-.anim-fadeup  { animation:fadeUp  .45s cubic-bezier(.16,1,.3,1) both }
-.anim-fadein  { animation:fadeIn  .35s ease both }
-.anim-slidein { animation:slideIn .4s  cubic-bezier(.16,1,.3,1) both }
-.anim-scalein { animation:scaleIn .35s cubic-bezier(.16,1,.3,1) both }
+/* Easing: slow start, quick middle, soft land */
+:root { --ease-flow: cubic-bezier(.16,1,.3,1) }
+
+.anim-fadeup   { animation:fadeUp  .65s var(--ease-flow) both }
+.anim-fadein   { animation:fadeIn  .5s  var(--ease-flow) both }
+.anim-slidein  { animation:slideIn .6s  var(--ease-flow) both }
+.anim-scaleup  { animation:scaleUp .55s var(--ease-flow) both }
 
 .stagger-1  { animation-delay:.05s }
 .stagger-2  { animation-delay:.10s }
