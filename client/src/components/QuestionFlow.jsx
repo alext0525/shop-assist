@@ -221,7 +221,7 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
           disabled={!allAnswered || submitting || loading}
           className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500"
         >
-          {submitting ? 'Loading...' : mode === 'vague' ? 'Find my products →' : batchIndex < 2 ? 'Next questions →' : 'Find my products →'}
+          {submitting ? 'Loading...' : mode === 'vague' ? 'Find my products →' : batchIndex < 3 ? `Next questions → (${batchIndex + 1}/3)` : 'Find my products →'}
         </button>
       </div>
     </div>

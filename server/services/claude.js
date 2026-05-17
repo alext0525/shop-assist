@@ -85,26 +85,35 @@ export async function generateQuestions({ category, mode, previousQA = [], batch
     : 0;
   const aiCount = Math.max(1, targetCount - reservedSlots);
 
-  const prompt = `You are a friendly shopping assistant helping someone find the perfect ${category}.
+  const modeInstructions = isVague
+    ? `MODE: Quick Match — ask broad, lifestyle-level questions. No technical specs. Focus on use case, preferences, and priorities.`
+    : `MODE: Deep Dive — this user knows what they want and needs precise spec-level help finding it.
+Ask detailed TECHNICAL questions about exact specs. Cover ALL relevant technical dimensions for ${category}.
+Examples for laptop: screen size, processor brand/tier, RAM amount, storage type/size, GPU requirement, battery priority, weight, OS, ports needed.
+Examples for GPU: VRAM amount, resolution target, ray tracing, power supply wattage, slot size constraints.
+Examples for headphones: driver type, impedance, open/closed back, codec support (aptX/LDAC), mic requirement.
+Be specific and technical — this user understands specs.`;
+
+  const prompt = `You are a shopping assistant helping someone find the perfect ${category}.
 Context: ${categoryHint}
+${modeInstructions}
 ${previousContext}
 
-Generate exactly ${aiCount} questions to understand the user's needs for a ${category}.
+Generate exactly ${aiCount} questions.
 
 RULES:
 - Do NOT ask about budget or price (handled separately)
-- Do NOT ask about gender (handled separately for wearable categories)
-- For the FIRST batch, always ask about brand preference (with options)
-- Use multiple-choice options (A–E, where E is always "E – Other, please specify") when options help narrow choices
-- Use free-text (string) for open-ended questions needing specific details
-- Build on previous answers — do not repeat topics
+- Do NOT ask about gender (handled separately)
+- Do NOT repeat any topic already covered in previous Q&A
+- For the FIRST batch, include a brand preference question
+- Use A–E multiple-choice options when predefined choices help (E is always "E – Other, please specify")
+- Use free-text strings for questions needing open-ended technical detail
 
 Return ONLY a valid JSON array. Each item is either:
-- A plain string: "Your specific question here?"
+- A plain string: "Your question here?"
 - An object: {"question": "Your question?", "options": ["A option", "B option", "C option", "D option", "E – Other, please specify"]}
 
-Example object:
-{"question": "What will you primarily use it for?", "options": ["Gaming", "Work / Office", "Creative / Design", "General everyday use", "E – Other, please specify"]}`;
+Example: {"question": "How much RAM do you need?", "options": ["8 GB", "16 GB", "32 GB", "64 GB+", "E – Other, please specify"]}`;
 
   const msg = await getClient().messages.create({
     model: 'claude-haiku-4-5-20251001',
@@ -127,26 +136,11 @@ Example object:
   return aiQuestions.slice(0, targetCount);
 }
 
-export async function shouldContinueQuestions({ category, mode, previousQA, batchIndex }) {
+export async function shouldContinueQuestions({ mode, previousQA, batchIndex }) {
   if (mode === 'vague') return false;
+  // Deep Dive always runs exactly 3 batches (~12 questions) — no early stopping
   if (previousQA.length >= SPECIFIC_MAX_QUESTIONS) return false;
-  if (batchIndex === 0) return true;
-
-  const previousContext = previousQA.map((qa) => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
-  const prompt = `You are a shopping assistant for ${category}.
-You have asked ${previousQA.length} questions so far:
-${previousContext}
-
-Do you have enough information (budget, use case, key preferences) to make great product recommendations?
-Answer ONLY "yes" or "no".`;
-
-  const msg = await getClient().messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 10,
-    messages: [{ role: 'user', content: prompt }],
-  });
-
-  return msg.content[0].text.trim().toLowerCase().startsWith('no');
+  return batchIndex < 3;
 }
 
 export async function generateSearchQueries({ category, mode, previousQA }) {
