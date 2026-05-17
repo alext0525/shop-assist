@@ -143,22 +143,28 @@ export async function shouldContinueQuestions({ mode, previousQA, batchIndex }) 
   return batchIndex < 3;
 }
 
-export async function generateSearchQueries({ category, mode, previousQA }) {
+export async function generateSearchQueries({ category, mode, previousQA, country, stores }) {
   const isVague = mode === 'vague';
   const context = previousQA.map((qa) => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
   const budget = extractBudget(previousQA);
   const budgetNote = budget ? `User budget: ${budget}. Include price filters in queries.` : '';
+  const regionNote = country && country !== 'United States'
+    ? `User is in ${country}. Prioritise queries targeting local retailers: ${stores || country}.
+       Include region-specific queries like "best [product] ${country} 2024" and "buy [product] ${country}".
+       Use local retailer site: queries where possible (e.g. site:bol.com for Netherlands, site:amazon.de for Germany).`
+    : '';
 
   const prompt = `You are a shopping expert for ${category}.
 User preferences:
 ${context}
 ${budgetNote}
+${regionNote}
 
 Generate ${isVague ? 6 : 10} search queries to find matching products and reviews.
 Include:
-- Retailer queries: "best [specific type] site:amazon.com OR site:bestbuy.com" with price range if budget known
+- Retailer queries targeting ${country || 'US'} stores, with price range if budget known
 - Review/opinion queries: "[product] reddit review 2024 pros cons"
-- If budget specified, include it in at least 2 queries (e.g. "best keyboard under $100")
+- At least 2 region-specific queries if user is outside the US
 
 Return ONLY a JSON array of strings.`;
 
@@ -173,7 +179,7 @@ Return ONLY a JSON array of strings.`;
   return JSON.parse(jsonMatch ? jsonMatch[0] : text);
 }
 
-export async function rankAndFormatResults({ category, mode, previousQA, rawResults, images = [], feedback = null }) {
+export async function rankAndFormatResults({ category, mode, previousQA, rawResults, images = [], feedback = null, country, stores }) {
   const isVague = mode === 'vague';
   const targetCount = isVague ? 10 : 7;
   const context = previousQA.map((qa) => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
@@ -182,12 +188,16 @@ export async function rankAndFormatResults({ category, mode, previousQA, rawResu
     ? `STRICT BUDGET RULE: The user's budget is "${budget}". Only include products within or very close to this budget. Exclude anything clearly over budget.`
     : '';
   const feedbackNote = feedback ? `\nUser refinement feedback: "${feedback}" — prioritise this.` : '';
+  const regionNote = country && country !== 'United States'
+    ? `REGION: User is in ${country}. Strongly prefer products available through local retailers (${stores || country}). Avoid recommending US-only products or deals that won't ship/apply to ${country}.`
+    : '';
 
   const prompt = `You are a shopping expert for ${category}.
 
 User preferences:
 ${context}
 ${budgetNote}${feedbackNote}
+${regionNote}
 
 Raw search results (product pages + reviews):
 ${JSON.stringify(rawResults, null, 2)}

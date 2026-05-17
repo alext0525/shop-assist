@@ -6,19 +6,19 @@ const router = express.Router();
 
 router.post('/products', async (req, res) => {
   try {
-    const { category, mode, previousQA } = req.body;
+    const { category, mode, previousQA, country, countryCode, stores } = req.body;
     if (!category || !mode || !previousQA) {
       return res.status(400).json({ error: 'category, mode, and previousQA are required' });
     }
 
-    const queries = await generateSearchQueries({ category, mode, previousQA });
+    const queries = await generateSearchQueries({ category, mode, previousQA, country, stores });
     const { results: rawResults, images } = await searchMultiple(queries);
 
     if (rawResults.length === 0) {
       return res.status(404).json({ error: 'No products found. Try different preferences.' });
     }
 
-    const ranked = await rankAndFormatResults({ category, mode, previousQA, rawResults, images });
+    const ranked = await rankAndFormatResults({ category, mode, previousQA, rawResults, images, country, stores });
     res.json({ products: ranked });
   } catch (err) {
     console.error(err);
@@ -28,7 +28,7 @@ router.post('/products', async (req, res) => {
 
 router.post('/refine', async (req, res) => {
   try {
-    const { category, mode, originalQA, currentProducts, feedback } = req.body;
+    const { category, mode, originalQA, currentProducts, feedback, country, stores } = req.body;
     if (!category || !feedback) {
       return res.status(400).json({ error: 'category and feedback are required' });
     }
@@ -40,15 +40,7 @@ router.post('/refine', async (req, res) => {
       return res.json({ message, products: currentProducts });
     }
 
-    const products = await rankAndFormatResults({
-      category,
-      mode,
-      previousQA: originalQA,
-      rawResults,
-      images,
-      feedback,
-    });
-
+    const products = await rankAndFormatResults({ category, mode, previousQA: originalQA, rawResults, images, feedback, country, stores });
     res.json({ message, products });
   } catch (err) {
     console.error(err);

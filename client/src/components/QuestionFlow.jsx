@@ -10,24 +10,18 @@ const LABELS = {
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
-// Normalise a question item to { question, options }
 function normalise(q) {
   if (typeof q === 'string') return { question: q, options: null };
-  return { question: q.question, options: q.options || null };
+  return { question: q.question ?? q, options: q.options ?? null };
 }
 
-function getKey(q) {
-  return normalise(q).question;
-}
-
-function isOtherOption(opt) {
-  return opt.toLowerCase().startsWith('e –') || opt.toLowerCase().includes('other');
-}
+function getKey(q) { return normalise(q).question; }
+function isOtherOption(opt) { return opt?.toLowerCase().startsWith('e –') || opt?.toLowerCase().includes('other'); }
 
 export default function QuestionFlow({ category, mode, onComplete, onBack, error }) {
   const [questions, setQuestions] = useState([]);
-  const [answers, setAnswers] = useState({});   // key → answer string
-  const [otherText, setOtherText] = useState({}); // key → custom "other" text
+  const [answers, setAnswers] = useState({});
+  const [otherText, setOtherText] = useState({});
   const [allQA, setAllQA] = useState([]);
   const [batchIndex, setBatchIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -36,7 +30,7 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
   const bottomRef = useRef(null);
 
   useEffect(() => { fetchQuestions([], 0); }, []);
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [questions, loading]);
+  useEffect(() => { if (!loading) bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [loading]);
 
   async function fetchQuestions(previousQA, batch) {
     setLoading(true);
@@ -50,7 +44,7 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
       if (data.done) { onComplete(previousQA); }
       else { setQuestions(data.questions); setAnswers({}); setOtherText({}); }
     } catch (err) {
-      setFetchError(err.message || 'Could not reach the server. Is it running?');
+      setFetchError(err.message || 'Could not reach the server.');
     } finally {
       setLoading(false);
     }
@@ -58,14 +52,18 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
 
   function getFinalAnswer(key) {
     const ans = answers[key] || '';
-    if (isOtherOption(ans)) return otherText[key]?.trim() || '';
-    return ans.trim();
+    if (isOtherOption(ans)) {
+      const custom = otherText[key]?.trim();
+      return custom || 'No preference';
+    }
+    return ans.trim() || 'No preference';
   }
 
-  const allAnswered = questions.length > 0 && questions.every(q => getFinalAnswer(getKey(q)).length > 0);
+  // Always allow submitting — unanswered = "No preference"
+  const canSubmit = questions.length > 0 && !loading && !submitting;
 
   async function handleSubmit() {
-    if (!allAnswered) return;
+    if (!canSubmit) return;
     setSubmitting(true);
 
     const batchQA = questions.map(q => ({
@@ -82,8 +80,7 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
     setSubmitting(false);
   }
 
-  const totalBatches = 3;
-  const progressPct = Math.min((batchIndex / totalBatches) * 100, 100);
+  const progressPct = Math.min((batchIndex / 3) * 100, 100);
 
   return (
     <div className="w-full max-w-xl mx-auto mt-10 flex flex-col gap-5">
@@ -96,9 +93,11 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
             <div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-pink-500 transition-all duration-700" style={{ width: `${progressPct}%` }} />
           </div>
         )}
+        <p className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
+          Unanswered questions will be treated as "No preference"
+        </p>
       </div>
 
-      {/* Previous answers (dimmed) */}
       {allQA.length > 0 && (
         <div className="flex flex-col gap-2 opacity-50">
           {allQA.map((qa, i) => (
@@ -125,7 +124,7 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
 
       {loading ? (
         <div className="flex flex-col gap-3 mt-2">
-          {[1,2,3].map(i => <div key={i} className="h-28 rounded-2xl animate-pulse" style={{ background: 'var(--surface)' }} />)}
+          {[1,2,3,4].map(i => <div key={i} className="h-24 rounded-2xl animate-pulse" style={{ background: 'var(--surface)' }} />)}
         </div>
       ) : (
         <div className="flex flex-col gap-4">
@@ -134,13 +133,34 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
             const key = question;
             const selectedOpt = answers[key] || '';
             const showOtherInput = selectedOpt && isOtherOption(selectedOpt);
+            const isAnswered = getFinalAnswer(key) !== 'No preference';
 
             return (
-              <div key={`${batchIndex}-${i}`} className="p-5 rounded-2xl transition-all" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow)' }}>
-                <p className="text-sm font-medium mb-4" style={{ color: 'var(--text)' }}>
-                  <span className="font-bold mr-2" style={{ color: 'var(--accent)' }}>Q{allQA.length + i + 1}.</span>
-                  {question}
-                </p>
+              <div
+                key={`${batchIndex}-${i}`}
+                className="p-5 rounded-2xl transition-all"
+                style={{
+                  background: 'var(--surface)',
+                  border: `1px solid ${isAnswered ? 'var(--accent)' : 'var(--border)'}`,
+                  boxShadow: 'var(--shadow)',
+                }}
+              >
+                <div className="flex items-start justify-between gap-2 mb-4">
+                  <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>
+                    <span className="font-bold mr-2" style={{ color: 'var(--accent)' }}>Q{allQA.length + i + 1}.</span>
+                    {question}
+                  </p>
+                  {!isAnswered && (
+                    <span className="flex-shrink-0 text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--surface-2)', color: 'var(--text-faint)', border: '1px solid var(--border)' }}>
+                      optional
+                    </span>
+                  )}
+                  {isAnswered && (
+                    <span className="flex-shrink-0">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    </span>
+                  )}
+                </div>
 
                 {options ? (
                   <div className="flex flex-col gap-2">
@@ -151,7 +171,7 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
                       return (
                         <button
                           key={oi}
-                          onClick={() => setAnswers(p => ({ ...p, [key]: opt }))}
+                          onClick={() => setAnswers(p => ({ ...p, [key]: isSelected ? '' : opt }))}
                           className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm text-left transition-all duration-150 hover:scale-[1.01] active:scale-[0.99]"
                           style={isSelected ? {
                             background: 'var(--accent-light)',
@@ -163,23 +183,16 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
                             color: 'var(--text-muted)',
                           }}
                         >
-                          <span
-                            className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold"
-                            style={isSelected
-                              ? { background: 'var(--accent)', color: 'white' }
-                              : { background: 'var(--border)', color: 'var(--text-muted)' }
-                            }
-                          >
+                          <span className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold"
+                            style={isSelected ? { background: 'var(--accent)', color: 'white' } : { background: 'var(--border)', color: 'var(--text-muted)' }}>
                             {isSelected && !isOther
                               ? <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-                              : letter
-                            }
+                              : letter}
                           </span>
                           <span>{opt.replace(/^[A-F]\s*[–—-]\s*/i, '')}</span>
                         </button>
                       );
                     })}
-
                     {showOtherInput && (
                       <textarea
                         autoFocus
@@ -187,7 +200,7 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
                         onChange={e => setOtherText(p => ({ ...p, [key]: e.target.value }))}
                         placeholder="Please specify..."
                         rows={2}
-                        className="w-full rounded-xl px-4 py-3 text-sm resize-none outline-none transition-all mt-1"
+                        className="w-full rounded-xl px-4 py-3 text-sm resize-none outline-none mt-1"
                         style={{ background: 'var(--surface-2)', border: '2px solid var(--accent)', color: 'var(--text)' }}
                       />
                     )}
@@ -196,12 +209,19 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
                   <textarea
                     value={answers[key] || ''}
                     onChange={e => setAnswers(p => ({ ...p, [key]: e.target.value }))}
-                    placeholder="Type your answer here..."
-                    rows={2}
+                    placeholder="Type your answer, or leave blank to skip..."
+                    rows={3}
                     className="w-full rounded-xl px-4 py-3 text-sm resize-none outline-none transition-all"
-                    style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                    onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-                    onBlur={e => e.target.style.borderColor = 'var(--border)'}
+                    style={{
+                      background: 'var(--surface-2)',
+                      border: '2px solid var(--border)',
+                      color: 'var(--text)',
+                      display: 'block',
+                      width: '100%',
+                      boxSizing: 'border-box',
+                    }}
+                    onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.background = 'var(--surface)'; }}
+                    onBlur={e => { e.target.style.borderColor = answers[key] ? 'var(--accent)' : 'var(--border)'; e.target.style.background = 'var(--surface-2)'; }}
                   />
                 )}
               </div>
@@ -218,10 +238,10 @@ export default function QuestionFlow({ category, mode, onComplete, onBack, error
         )}
         <button
           onClick={handleSubmit}
-          disabled={!allAnswered || submitting || loading}
+          disabled={!canSubmit}
           className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500"
         >
-          {submitting ? 'Loading...' : mode === 'vague' ? 'Find my products →' : batchIndex < 3 ? `Next questions → (${batchIndex + 1}/3)` : 'Find my products →'}
+          {submitting ? 'Loading...' : mode === 'vague' ? 'Find my products →' : batchIndex < 3 ? `Next questions → (${batchIndex + 1} / 3)` : 'Find my products →'}
         </button>
       </div>
     </div>

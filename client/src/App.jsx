@@ -21,7 +21,7 @@ export default function App() {
     return saved ? saved === 'dark' : false;
   });
 
-  const { currency, convertPrice } = useCurrency();
+  const { region, setRegion, convertPrice } = useCurrency();
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark);
@@ -36,7 +36,7 @@ export default function App() {
       const data = await fetchJSON('/api/search/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category, mode, previousQA: qa }),
+        body: JSON.stringify({ category, mode, previousQA: qa, country: region.country, countryCode: region.code, stores: region.stores }),
       });
       setProducts(data.products);
       setStage(STAGES.RESULTS);
@@ -57,12 +57,12 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
-      <Header onReset={handleReset} showReset={stage !== STAGES.CATEGORY} isDark={isDark} setIsDark={setIsDark} currency={currency} />
+      <Header onReset={handleReset} showReset={stage !== STAGES.CATEGORY} isDark={isDark} setIsDark={setIsDark} region={region} setRegion={setRegion} />
       <main className="flex-1 flex flex-col items-center px-4 pb-24">
         {stage === STAGES.CATEGORY && <CategorySelector onSelect={(c) => { setCategory(c); setStage(STAGES.MODE); }} />}
         {stage === STAGES.MODE && <ModeSelector category={category} onSelect={(m) => { setMode(m); setStage(STAGES.QUESTIONS); }} onBack={() => setStage(STAGES.CATEGORY)} />}
         {stage === STAGES.QUESTIONS && <QuestionFlow category={category} mode={mode} onComplete={handleQuestionsComplete} onBack={() => setStage(STAGES.MODE)} error={error} />}
-        {stage === STAGES.SEARCHING && <SearchingState category={category} />}
+        {stage === STAGES.SEARCHING && <SearchingState category={category} region={region} />}
         {stage === STAGES.RESULTS && (
           <ProductResults
             products={products}
@@ -72,6 +72,7 @@ export default function App() {
             allQA={allQA}
             onReset={handleReset}
             convertPrice={convertPrice}
+            region={region}
           />
         )}
       </main>
@@ -79,7 +80,7 @@ export default function App() {
   );
 }
 
-function SearchingState({ category }) {
+function SearchingState({ category, region }) {
   return (
     <div className="flex flex-col items-center justify-center flex-1 gap-5 mt-32">
       <div className="relative w-16 h-16">
@@ -88,7 +89,9 @@ function SearchingState({ category }) {
       </div>
       <div className="text-center">
         <p className="text-lg font-semibold mb-1">Searching the web...</p>
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Finding the best {category} options for you</p>
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+          Finding {category} options available in {region?.country || 'your region'}
+        </p>
       </div>
     </div>
   );
