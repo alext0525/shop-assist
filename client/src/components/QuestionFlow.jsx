@@ -103,20 +103,30 @@ export default function QuestionFlow({ category, mode, region, onComplete, onBac
   const progressPct = Math.round(((qNum - 1) / maxQ) * 100);
 
   return (
-    <div className="w-full max-w-lg mx-auto mt-10 flex flex-col gap-5 px-2">
+    <div className="w-full max-w-lg mx-auto mt-8 flex flex-col gap-5 px-2 anim-fadeup">
 
-      {/* Progress */}
+      {/* Progress header */}
       <div>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--accent)' }}>
-            {mode === 'vague' ? '⚡ Quick Match' : '🎯 Deep Dive'} — {LABELS[category] || category}
-          </span>
-          <span className="text-xs font-medium tabular-nums" style={{ color: 'var(--text-faint)' }}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded flex items-center justify-center" style={{ background: 'var(--accent-light)' }}>
+              {mode === 'vague'
+                ? <svg width="11" height="11" viewBox="0 0 24 24" fill="var(--accent)"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+              }
+            </div>
+            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent)' }}>
+              {mode === 'vague' ? 'Quick Match' : 'Deep Dive'} · {LABELS[category] || category}
+            </span>
+          </div>
+          <span className="text-xs font-bold tabular-nums px-2 py-0.5 rounded-full" style={{ background: 'var(--surface-2)', color: 'var(--text-faint)', border: '1px solid var(--border)' }}>
             {Math.max(qNum - 1, 0)} / {maxQ}
           </span>
         </div>
-        <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
-          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${progressPct}%`, background: 'linear-gradient(90deg, var(--accent), var(--accent-2))' }} />
+        {/* Glow progress bar */}
+        <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+          <div className="h-full rounded-full transition-all duration-700"
+            style={{ width: `${progressPct}%`, background: 'var(--gradient)', boxShadow: progressPct > 0 ? '0 0 10px rgba(99,102,241,.6)' : 'none' }} />
         </div>
       </div>
 
@@ -124,15 +134,15 @@ export default function QuestionFlow({ category, mode, region, onComplete, onBac
       {allQA.length > 0 && (
         <div className="flex flex-col gap-1.5">
           {allQA.map((qa, i) => (
-            <div key={i} className="flex items-start gap-3 px-4 py-3 rounded-xl" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-              <span className="text-xs font-bold mt-0.5 flex-shrink-0 w-5 text-center" style={{ color: 'var(--accent)' }}>{i + 1}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs mb-0.5 truncate" style={{ color: 'var(--text-faint)' }}>{qa.question}</p>
-                <p className="text-sm font-medium" style={{ color: qa.answer === 'No preference' ? 'var(--text-faint)' : 'var(--text)', fontStyle: qa.answer === 'No preference' ? 'italic' : 'normal' }}>
-                  {qa.answer === 'No preference' ? 'No preference' : qa.answer}
+            <div key={i} className="flex items-center gap-3 px-4 py-2.5 rounded-xl" style={{ background: 'var(--surface)', border: '1px solid var(--border)', opacity: 0.65 }}>
+              <span className="text-xs font-bold flex-shrink-0 w-5 h-5 rounded flex items-center justify-center" style={{ background: 'var(--accent-light)', color: 'var(--accent)' }}>{i + 1}</span>
+              <div className="flex-1 min-w-0 flex items-baseline gap-2">
+                <p className="text-xs truncate flex-shrink-0 max-w-[40%]" style={{ color: 'var(--text-faint)' }}>{qa.question.split('?')[0]}?</p>
+                <p className="text-xs font-semibold truncate" style={{ color: qa.answer === 'No preference' ? 'var(--text-faint)' : 'var(--accent-text)', fontStyle: qa.answer === 'No preference' ? 'italic' : 'normal' }}>
+                  {qa.answer}
                 </p>
               </div>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ color: 'var(--green)', flexShrink: 0, marginTop: 3 }}><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
           ))}
         </div>
@@ -140,25 +150,27 @@ export default function QuestionFlow({ category, mode, region, onComplete, onBac
 
       {/* Errors */}
       {(fetchError || error) && (
-        <div className="p-4 rounded-xl text-sm flex items-start justify-between gap-3" style={{ background: 'rgba(220,38,38,0.07)', border: '1px solid rgba(220,38,38,0.2)', color: 'var(--red)' }}>
+        <div className="p-4 rounded-xl text-sm flex items-start justify-between gap-3" style={{ background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.25)', color: 'var(--red)' }}>
           <span>{fetchError || error}</span>
           {fetchError && <button onClick={() => loadNext(allQA)} className="underline text-xs flex-shrink-0">Retry</button>}
         </div>
       )}
 
-      {/* Current question card */}
+      {/* Question card */}
       {loading ? (
-        <div className="rounded-2xl p-6 flex flex-col gap-4" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-          <div className="h-5 w-3/4 rounded-lg animate-pulse" style={{ background: 'var(--surface-2)' }} />
-          <div className="flex flex-col gap-2">
-            {[1,2,3,4].map(i => <div key={i} className="h-12 rounded-xl animate-pulse" style={{ background: 'var(--surface-2)' }} />)}
+        <div className="rounded-2xl p-6 flex flex-col gap-3" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          <div className="h-4 w-2/3 rounded-lg skeleton" />
+          <div className="flex flex-col gap-2 mt-2">
+            {[1,2,3,4].map(i => <div key={i} className="h-14 rounded-xl skeleton" />)}
           </div>
         </div>
       ) : currentQ && (
-        <div className="rounded-2xl p-6 flex flex-col gap-4" style={{ background: 'var(--surface)', border: `1px solid ${hasAnswer ? 'var(--accent)' : 'var(--border)'}`, boxShadow: 'var(--shadow-md)', transition: 'border-color 0.2s' }}>
+        <div className="anim-slidein rounded-2xl p-6 flex flex-col gap-4" style={{ background: 'var(--surface)', border: `1.5px solid ${hasAnswer ? 'var(--accent)' : 'var(--border)'}`, boxShadow: hasAnswer ? 'var(--glow-sm)' : 'var(--shadow-md)', transition: 'border-color .2s, box-shadow .2s' }}>
           <div className="flex items-start gap-3">
-            <span className="flex-shrink-0 text-sm font-bold mt-0.5" style={{ color: 'var(--accent)' }}>Q{qNum}.</span>
-            <p className="text-base font-semibold leading-snug" style={{ color: 'var(--text)' }}>{currentQ.question}</p>
+            <span className="flex-shrink-0 min-w-[28px] h-7 rounded-lg flex items-center justify-center text-xs font-black" style={{ background: 'var(--gradient)', color: 'white', boxShadow: 'var(--glow-sm)' }}>
+              {String(qNum).padStart(2, '0')}
+            </span>
+            <p className="text-base font-semibold leading-snug pt-0.5" style={{ color: 'var(--text)' }}>{currentQ.question}</p>
           </div>
 
           {currentQ.options ? (

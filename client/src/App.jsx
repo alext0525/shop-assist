@@ -30,13 +30,14 @@ export default function App() {
   const [error, setError] = useState(null);
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
-    return saved ? saved === 'dark' : false;
+    return saved ? saved === 'dark' : true; // dark by default
   });
 
   const { region, setRegion, convertPrice } = useCurrency();
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark);
+    // Dark = no class (default CSS). Light = add .light class.
+    document.documentElement.classList.toggle('light', !isDark);
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
   }, [isDark]);
 
@@ -160,29 +161,46 @@ function SearchingState({ category, region }) {
   const catLabel = LABELS[category] || (category?.replace(/-/g, ' ') ?? 'products');
 
   return (
-    <div className="flex flex-col items-center justify-center flex-1 gap-6 mt-32 w-full max-w-sm mx-auto">
-      <div className="relative w-14 h-14">
-        <div className="absolute inset-0 rounded-full border-4" style={{ borderColor: 'var(--border)' }} />
-        <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-violet-500 animate-spin" />
+    <div className="flex flex-col items-center justify-center flex-1 gap-8 px-4 w-full max-w-sm mx-auto anim-fadeup">
+      {/* Animated orb */}
+      <div className="relative flex items-center justify-center" style={{ width: 96, height: 96 }}>
+        <div className="absolute inset-0 rounded-full" style={{ background: 'radial-gradient(circle, rgba(99,102,241,.2) 0%, transparent 70%)' }} />
+        <div className="absolute inset-0 rounded-full border-2" style={{ borderColor: 'rgba(99,102,241,.15)' }} />
+        <div className="absolute inset-2 rounded-full border-2 border-transparent" style={{ borderTopColor: 'var(--accent)', animation: 'spin 1s linear infinite' }} />
+        <div className="absolute inset-5 rounded-full border-2 border-transparent" style={{ borderTopColor: 'var(--accent-2)', animation: 'spin 1.5s linear infinite reverse' }} />
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: 'var(--accent)' }}>
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
       </div>
-      <div className="w-full flex flex-col gap-3 text-center">
-        <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>
-          {SEARCH_STAGES[stageIdx]?.label}
-        </p>
-        <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
-          Finding {catLabel} available in {region?.country || 'your region'}
-        </p>
-        <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+
+      <div className="w-full flex flex-col gap-4 text-center">
+        <div>
+          <p className="text-lg font-bold mb-1" style={{ color: 'var(--text)' }}>{SEARCH_STAGES[stageIdx]?.label}</p>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+            Finding {catLabel} in {region?.country || 'your region'}
+          </p>
+        </div>
+
+        {/* Glow progress bar */}
+        <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
           <div
             className="h-full rounded-full transition-all duration-300"
-            style={{ width: `${pct}%`, background: 'linear-gradient(90deg, var(--accent), var(--accent-2))' }}
+            style={{
+              width: `${pct}%`,
+              background: 'var(--gradient)',
+              boxShadow: '0 0 12px rgba(99,102,241,.6)',
+            }}
           />
         </div>
-        <div className="flex justify-between text-xs" style={{ color: 'var(--text-faint)' }}>
+
+        {/* Stage dots */}
+        <div className="flex items-center justify-center gap-3">
           {SEARCH_STAGES.map((s, i) => (
-            <span key={i} style={{ color: i <= stageIdx ? 'var(--accent)' : 'var(--text-faint)', fontWeight: i === stageIdx ? 600 : 400 }}>
-              {i + 1}
-            </span>
+            <div key={i} className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full transition-all duration-300"
+                style={{ background: i < stageIdx ? 'var(--accent)' : i === stageIdx ? 'var(--accent-2)' : 'var(--border)', boxShadow: i === stageIdx ? '0 0 8px var(--accent)' : 'none' }} />
+              {i < SEARCH_STAGES.length - 1 && <div className="w-8 h-px" style={{ background: i < stageIdx ? 'var(--accent)' : 'var(--border)' }} />}
+            </div>
           ))}
         </div>
       </div>
