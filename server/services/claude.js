@@ -69,13 +69,51 @@ const BUDGET_RANGES = {
 
 const WEARABLE_CATEGORIES = new Set(['running-shoes', 'smartwatch']);
 
+// Categories where we ask type BEFORE budget (subtype dramatically shifts price)
+const TYPE_BEFORE_BUDGET = new Set(['bike']);
+
+// Per-subtype budget breakpoints (USD) for type-aware categories
+const BIKE_TYPE_BUDGETS = {
+  'road':             [800, 1500, 3000, 6000],
+  'triathlon':        [1500, 3500, 7000, 12000],
+  'mountain':         [600, 1200, 2500, 5000],
+  'gravel':           [800, 1500, 3000, 5500],
+  'city':             [300, 600, 1200, 2500],
+  'hybrid':           [300, 600, 1200, 2500],
+  'e-bike':           [1000, 2000, 4000, 8000],
+  'bmx':              [200, 500, 1000, 2500],
+};
+
+const BIKE_TYPE_QUESTION = {
+  question: 'What type of bike are you looking for?',
+  options: ['Road bike', 'Triathlon / TT bike', 'Mountain bike (MTB)', 'Gravel bike', 'City / Hybrid bike', 'E-bike', 'No preference'],
+};
+
+function bikeTypeFromAnswer(answer) {
+  if (!answer) return null;
+  const a = answer.toLowerCase();
+  if (a.includes('triathlon') || a.includes('tt')) return 'triathlon';
+  if (a.includes('road')) return 'road';
+  if (a.includes('mountain') || a.includes('mtb')) return 'mountain';
+  if (a.includes('gravel')) return 'gravel';
+  if (a.includes('city') || a.includes('hybrid')) return 'city';
+  if (a.includes('e-bike') || a.includes('electric')) return 'e-bike';
+  if (a.includes('bmx')) return 'bmx';
+  return null;
+}
+
 function formatMoney(usd, rate, symbol) {
   const v = Math.round((usd * rate) / 5) * 5;
   return `${symbol}${v.toLocaleString()}`;
 }
 
-function getBudgetOptions(category, currencySymbol, currencyRate) {
-  const points = BUDGET_RANGES[category] || [100, 300, 600];
+function getBudgetOptions(category, currencySymbol, currencyRate, bikeType = null) {
+  let points;
+  if (category === 'bike' && bikeType && BIKE_TYPE_BUDGETS[bikeType]) {
+    points = BIKE_TYPE_BUDGETS[bikeType];
+  } else {
+    points = BUDGET_RANGES[category] || [100, 300, 600];
+  }
   const opts = [];
   opts.push(`Under ${formatMoney(points[0], currencyRate, currencySymbol)}`);
   for (let i = 0; i < points.length - 1; i++) {
@@ -102,18 +140,33 @@ export async function generateNextQuestion({ category, mode, previousQA = [], cu
 
   if (qNum > maxQ) return { done: true };
 
-  // Q1 is always budget
-  if (qNum === 1) {
+  const hasBudget = previousQA.some(qa => qa.question.toLowerCase().includes('budget'));
+  const hasType = TYPE_BEFORE_BUDGET.has(category)
+    ? previousQA.some(qa => qa.question.toLowerCase().includes('type of bike'))
+    : true;
+
+  // For type-before-budget categories: Q1 = type
+  if (TYPE_BEFORE_BUDGET.has(category) && !hasType) {
+    if (category === 'bike') return { done: false, ...BIKE_TYPE_QUESTION };
+  }
+
+  // Budget question — after type for bike, first for everything else
+  if (!hasBudget) {
+    let bikeType = null;
+    if (category === 'bike') {
+      const typeQA = previousQA.find(qa => qa.question.toLowerCase().includes('type of bike'));
+      bikeType = bikeTypeFromAnswer(typeQA?.answer);
+    }
     return {
       done: false,
       question: `What is your budget? (prices in ${currencyCode})`,
-      options: getBudgetOptions(category, currencySymbol, currencyRate),
+      options: getBudgetOptions(category, currencySymbol, currencyRate, bikeType),
     };
   }
 
   // Q2 for wearables: gender
   const hasGender = previousQA.some(qa => qa.question.toLowerCase().includes('gender'));
-  if (WEARABLE_CATEGORIES.has(category) && !hasGender && qNum === 2) {
+  if (WEARABLE_CATEGORIES.has(category) && !hasGender) {
     return {
       done: false,
       question: 'What is your gender? (helps tailor fit and style)',

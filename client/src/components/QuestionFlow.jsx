@@ -173,11 +173,14 @@ export default function QuestionFlow({ category, mode, region, onComplete, onBac
                     <button
                       key={i}
                       onClick={() => toggleOption(opt)}
-                      className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm text-left transition-all duration-100"
-                      style={isSelected
-                        ? { background: 'var(--accent-light)', border: '2px solid var(--accent)', color: 'var(--text)' }
-                        : { background: 'var(--surface-2)', border: '1px solid var(--border)', color: isNoPref ? 'var(--text-faint)' : 'var(--text-muted)' }
-                      }
+                      className="flex items-center gap-3 w-full px-4 rounded-xl text-sm text-left transition-all duration-100"
+                      style={{
+                        minHeight: 52,
+                        ...(isSelected
+                          ? { background: 'var(--accent-light)', border: '2px solid var(--accent)', color: 'var(--text)' }
+                          : { background: 'var(--surface-2)', border: '1px solid var(--border)', color: isNoPref ? 'var(--text-faint)' : 'var(--text-muted)' }
+                        )
+                      }}
                     >
                       {/* Checkbox */}
                       <span className="flex-shrink-0 w-6 h-6 rounded-md flex items-center justify-center border-2 transition-all"
@@ -247,19 +250,29 @@ export default function QuestionFlow({ category, mode, region, onComplete, onBac
         </div>
       )}
 
-      {/* Navigation */}
+      {/* Navigation — sticky on mobile with safe area */}
       {!loading && (
-        <div className="flex gap-3">
+        <div
+          className="flex gap-3 sticky bottom-0 pt-3 pb-4"
+          style={{
+            paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))',
+            background: 'var(--bg)',
+          }}
+        >
           {allQA.length === 0 && (
-            <button onClick={onBack} className="px-5 py-3 rounded-xl text-sm font-medium" style={{ border: '1px solid var(--border)', color: 'var(--text-muted)', background: 'var(--surface)' }}>
+            <button
+              onClick={onBack}
+              className="px-5 rounded-xl text-sm font-medium"
+              style={{ border: '1px solid var(--border)', color: 'var(--text-muted)', background: 'var(--surface)', minHeight: 52 }}
+            >
               Back
             </button>
           )}
           <button
             onClick={handleNext}
             disabled={submitting}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50"
-            style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-2))' }}
+            className="flex-1 flex items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50"
+            style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-2))', minHeight: 52 }}
           >
             {submitting ? (
               <><div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Loading...</>
