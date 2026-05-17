@@ -14,6 +14,7 @@ export default function App() {
   const [category, setCategory] = useState(null);
   const [mode, setMode] = useState(null);
   const [products, setProducts] = useState([]);
+  const [marketSummary, setMarketSummary] = useState('');
   const [allQA, setAllQA] = useState([]);
   const [error, setError] = useState(null);
   const [isDark, setIsDark] = useState(() => {
@@ -39,6 +40,7 @@ export default function App() {
         body: JSON.stringify({ category, mode, previousQA: qa, country: region.country, countryCode: region.code, stores: region.stores }),
       });
       setProducts(data.products);
+      setMarketSummary(data.marketSummary || '');
       setStage(STAGES.RESULTS);
     } catch (err) {
       setError(err.message);
@@ -61,12 +63,13 @@ export default function App() {
       <main className="flex-1 flex flex-col items-center px-4 pb-24">
         {stage === STAGES.CATEGORY && <CategorySelector onSelect={(c) => { setCategory(c); setStage(STAGES.MODE); }} />}
         {stage === STAGES.MODE && <ModeSelector category={category} onSelect={(m) => { setMode(m); setStage(STAGES.QUESTIONS); }} onBack={() => setStage(STAGES.CATEGORY)} />}
-        {stage === STAGES.QUESTIONS && <QuestionFlow category={category} mode={mode} onComplete={handleQuestionsComplete} onBack={() => setStage(STAGES.MODE)} error={error} />}
+        {stage === STAGES.QUESTIONS && <QuestionFlow category={category} mode={mode} region={region} onComplete={handleQuestionsComplete} onBack={() => setStage(STAGES.MODE)} error={error} />}
         {stage === STAGES.SEARCHING && <SearchingState category={category} region={region} />}
         {stage === STAGES.RESULTS && (
           <ProductResults
             products={products}
             setProducts={setProducts}
+            marketSummary={marketSummary}
             category={category}
             mode={mode}
             allQA={allQA}

@@ -1,5 +1,5 @@
 import express from 'express';
-import { generateSearchQueries, rankAndFormatResults, refineWithFeedback } from '../services/claude.js';
+import { generateSearchQueries, rankAndFormatResults, generateMarketSummary, refineWithFeedback } from '../services/claude.js';
 import { searchMultiple } from '../services/tavily.js';
 
 const router = express.Router();
@@ -11,15 +11,19 @@ router.post('/products', async (req, res) => {
       return res.status(400).json({ error: 'category, mode, and previousQA are required' });
     }
 
-    const queries = await generateSearchQueries({ category, mode, previousQA, country, stores });
+    const [queries, marketSummary] = await Promise.all([
+      generateSearchQueries({ category, mode, previousQA, country, stores }),
+      generateMarketSummary({ category, previousQA, country }),
+    ]);
+
     const { results: rawResults, images } = await searchMultiple(queries);
 
     if (rawResults.length === 0) {
       return res.status(404).json({ error: 'No products found. Try different preferences.' });
     }
 
-    const ranked = await rankAndFormatResults({ category, mode, previousQA, rawResults, images, country, stores });
-    res.json({ products: ranked });
+    const products = await rankAndFormatResults({ category, mode, previousQA, rawResults, images, country, stores });
+    res.json({ products, marketSummary });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message || 'Failed to search for products' });
@@ -29,16 +33,12 @@ router.post('/products', async (req, res) => {
 router.post('/refine', async (req, res) => {
   try {
     const { category, mode, originalQA, currentProducts, feedback, country, stores } = req.body;
-    if (!category || !feedback) {
-      return res.status(400).json({ error: 'category and feedback are required' });
-    }
+    if (!category || !feedback) return res.status(400).json({ error: 'category and feedback are required' });
 
     const { message, queries } = await refineWithFeedback({ category, originalQA, currentProducts, feedback });
     const { results: rawResults, images } = await searchMultiple(queries);
 
-    if (rawResults.length === 0) {
-      return res.json({ message, products: currentProducts });
-    }
+    if (rawResults.length === 0) return res.json({ message, products: currentProducts });
 
     const products = await rankAndFormatResults({ category, mode, previousQA: originalQA, rawResults, images, feedback, country, stores });
     res.json({ message, products });

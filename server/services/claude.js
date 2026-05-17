@@ -5,172 +5,196 @@ function getClient() {
 }
 
 export const CATEGORY_CONTEXT = {
-  keyboard: 'mechanical keyboards, membrane keyboards, wireless keyboards, gaming keyboards',
-  backpack: 'backpacks for everyday carry, travel, hiking, school, laptop backpacks',
-  gpu: 'graphics cards, GPUs for gaming, creative work, AI/ML, video editing',
-  headphones: 'over-ear headphones, in-ear earbuds, wireless headsets, gaming headsets, noise-cancelling',
-  monitor: 'gaming monitors, professional displays, ultrawide monitors, 4K displays, portable monitors',
-  mouse: 'gaming mice, ergonomic mice, wireless mice, trackballs, productivity mice',
-  laptop: 'gaming laptops, ultrabooks, business laptops, MacBooks, budget laptops',
-  smartphone: 'Android phones, iPhones, budget smartphones, flagship phones, camera phones',
+  keyboard:       'mechanical keyboards, membrane keyboards, wireless keyboards, gaming keyboards',
+  backpack:       'backpacks for everyday carry, travel, hiking, school, laptop backpacks',
+  gpu:            'graphics cards, GPUs for gaming, creative work, AI/ML, video editing',
+  headphones:     'over-ear headphones, in-ear earbuds, wireless headsets, gaming headsets, noise-cancelling',
+  monitor:        'gaming monitors, professional displays, ultrawide monitors, 4K displays, portable monitors',
+  mouse:          'gaming mice, ergonomic mice, wireless mice, trackballs, productivity mice',
+  laptop:         'gaming laptops, ultrabooks, business laptops, MacBooks, budget laptops',
+  smartphone:     'Android phones, iPhones, budget smartphones, flagship phones, camera phones',
   'office-chair': 'ergonomic office chairs, gaming chairs, executive chairs, mesh chairs, lumbar support',
-  smartwatch: 'smartwatches, fitness trackers, hybrid watches, Apple Watch, sports watches',
-  'running-shoes': 'road running shoes, trail running shoes, everyday trainers, minimalist shoes, stability shoes',
-  speakers: 'Bluetooth speakers, bookshelf speakers, soundbars, portable speakers, party speakers',
-  tablet: 'iPad, Android tablets, Windows tablets, drawing tablets, e-readers',
-  tv: '4K TVs, OLED TVs, QLED TVs, smart TVs, gaming TVs, budget TVs',
-  bike: 'road bikes, mountain bikes, e-bikes, commuter bikes, gravel bikes, hybrid bikes',
+  smartwatch:     'smartwatches, fitness trackers, hybrid watches, Apple Watch, sports watches',
+  'running-shoes':'road running shoes, trail running shoes, everyday trainers, minimalist shoes, stability shoes',
+  speakers:       'Bluetooth speakers, bookshelf speakers, soundbars, portable speakers, party speakers',
+  tablet:         'iPad, Android tablets, Windows tablets, drawing tablets, e-readers',
+  tv:             '4K TVs, OLED TVs, QLED TVs, smart TVs, gaming TVs, budget TVs',
+  bike:           'road bikes, mountain bikes, e-bikes, commuter bikes, gravel bikes, hybrid bikes',
 };
 
-// Budget options per category (USD)
-const BUDGET_OPTIONS = {
-  keyboard:       ['Under $50', '$50–$100', '$100–$200', '$200+', 'E – Other, please specify'],
-  backpack:       ['Under $40', '$40–$80', '$80–$150', '$150+', 'E – Other, please specify'],
-  gpu:            ['Under $200', '$200–$400', '$400–$700', '$700–$1,000', 'E – Other, please specify'],
-  headphones:     ['Under $50', '$50–$150', '$150–$350', '$350+', 'E – Other, please specify'],
-  monitor:        ['Under $200', '$200–$400', '$400–$800', '$800+', 'E – Other, please specify'],
-  mouse:          ['Under $30', '$30–$60', '$60–$120', '$120+', 'E – Other, please specify'],
-  laptop:         ['Under $500', '$500–$900', '$900–$1,500', '$1,500+', 'E – Other, please specify'],
-  smartphone:     ['Under $250', '$250–$500', '$500–$900', '$900+', 'E – Other, please specify'],
-  'office-chair': ['Under $100', '$100–$250', '$250–$500', '$500+', 'E – Other, please specify'],
-  smartwatch:     ['Under $100', '$100–$250', '$250–$500', '$500+', 'E – Other, please specify'],
-  'running-shoes':['Under $60', '$60–$100', '$100–$160', '$160+', 'E – Other, please specify'],
-  speakers:       ['Under $50', '$50–$150', '$150–$400', '$400+', 'E – Other, please specify'],
-  tablet:         ['Under $200', '$200–$450', '$450–$800', '$800+', 'E – Other, please specify'],
-  tv:             ['Under $400', '$400–$800', '$800–$1,500', '$1,500+', 'E – Other, please specify'],
-  bike:           ['Under $400', '$400–$800', '$800–$2,000', '$2,000+', 'E – Other, please specify'],
+// USD price range breakpoints per category
+const BUDGET_RANGES = {
+  keyboard:       [50, 100, 200],
+  backpack:       [40, 80, 150],
+  gpu:            [200, 400, 700, 1000],
+  headphones:     [50, 150, 350],
+  monitor:        [200, 400, 800],
+  mouse:          [30, 60, 120],
+  laptop:         [500, 900, 1500],
+  smartphone:     [250, 500, 900],
+  'office-chair': [100, 250, 500],
+  smartwatch:     [100, 250, 500],
+  'running-shoes':[60, 100, 160],
+  speakers:       [50, 150, 400],
+  tablet:         [200, 450, 800],
+  tv:             [400, 800, 1500],
+  bike:           [400, 800, 2000],
 };
 
 const WEARABLE_CATEGORIES = new Set(['running-shoes', 'smartwatch']);
-const SPECIFIC_BATCH_SIZE = 4;
-const SPECIFIC_MAX_QUESTIONS = 12;
 
-function budgetQuestion(category) {
-  return {
-    question: 'What is your budget?',
-    options: BUDGET_OPTIONS[category] || ['Under $100', '$100–$300', '$300–$600', '$600+', 'E – Other, please specify'],
-  };
+function formatMoney(usd, rate, symbol) {
+  const v = Math.round((usd * rate) / 5) * 5;
+  return `${symbol}${v.toLocaleString()}`;
 }
 
-const GENDER_QUESTION = {
-  question: 'What is your gender? (helps tailor fit and style recommendations)',
-  options: ['Male', 'Female', 'Non-binary / Either', 'E – Other, please specify'],
-};
+function getBudgetOptions(category, currencySymbol, currencyRate) {
+  const points = BUDGET_RANGES[category] || [100, 300, 600];
+  const opts = [];
+  opts.push(`Under ${formatMoney(points[0], currencyRate, currencySymbol)}`);
+  for (let i = 0; i < points.length - 1; i++) {
+    opts.push(`${formatMoney(points[i], currencyRate, currencySymbol)}–${formatMoney(points[i + 1], currencyRate, currencySymbol)}`);
+  }
+  opts.push(`${formatMoney(points[points.length - 1], currencyRate, currencySymbol)}+`);
+  opts.push('No preference');
+  return opts;
+}
 
 function extractBudget(previousQA) {
-  const qa = previousQA.find(
-    (qa) => qa.question.toLowerCase().includes('budget') || qa.question.toLowerCase().includes('price')
+  const qa = previousQA.find(qa =>
+    qa.question.toLowerCase().includes('budget') || qa.question.toLowerCase().includes('price')
   );
   return qa ? qa.answer : null;
 }
 
-export async function generateQuestions({ category, mode, previousQA = [], batchIndex = 0 }) {
-  const categoryHint = CATEGORY_CONTEXT[category] || category;
+// --- SINGLE-QUESTION GENERATION ---
+
+export async function generateNextQuestion({ category, mode, previousQA = [], currencyCode = 'USD', currencySymbol = '$', currencyRate = 1 }) {
   const isVague = mode === 'vague';
-  const isFirstBatch = batchIndex === 0;
+  const maxQ = isVague ? 3 : 12;
+  const qNum = previousQA.length + 1;
 
-  // Questions we must inject (only in first batch, if not already answered)
-  const alreadyAnswered = previousQA.map((qa) => qa.question);
-  const hasBudget = alreadyAnswered.some((q) => q.toLowerCase().includes('budget'));
-  const hasGender = alreadyAnswered.some((q) => q.toLowerCase().includes('gender'));
+  if (qNum > maxQ) return { done: true };
 
-  const previousContext = previousQA.length
-    ? `\nPrevious Q&A:\n${previousQA.map((qa) => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n')}`
-    : '';
+  // Q1 is always budget
+  if (qNum === 1) {
+    return {
+      done: false,
+      question: `What is your budget? (prices in ${currencyCode})`,
+      options: getBudgetOptions(category, currencySymbol, currencyRate),
+    };
+  }
 
-  const targetCount = isVague ? 3 : SPECIFIC_BATCH_SIZE;
-  // Reserve slots for injected questions
-  const reservedSlots = isFirstBatch
-    ? (hasBudget ? 0 : 1) + (WEARABLE_CATEGORIES.has(category) && !hasGender ? 1 : 0)
-    : 0;
-  const aiCount = Math.max(1, targetCount - reservedSlots);
+  // Q2 for wearables: gender
+  const hasGender = previousQA.some(qa => qa.question.toLowerCase().includes('gender'));
+  if (WEARABLE_CATEGORIES.has(category) && !hasGender && qNum === 2) {
+    return {
+      done: false,
+      question: 'What is your gender? (helps tailor fit and style)',
+      options: ['Male', 'Female', 'Non-binary / Either', 'No preference'],
+    };
+  }
 
-  const modeInstructions = isVague
-    ? `MODE: Quick Match — ask broad, lifestyle-level questions. No technical specs. Focus on use case, preferences, and priorities.`
-    : `MODE: Deep Dive — this user knows what they want and needs precise spec-level help finding it.
-Ask detailed TECHNICAL questions about exact specs. Cover ALL relevant technical dimensions for ${category}.
-Examples for laptop: screen size, processor brand/tier, RAM amount, storage type/size, GPU requirement, battery priority, weight, OS, ports needed.
-Examples for GPU: VRAM amount, resolution target, ray tracing, power supply wattage, slot size constraints.
-Examples for headphones: driver type, impedance, open/closed back, codec support (aptX/LDAC), mic requirement.
-Be specific and technical — this user understands specs.`;
+  const categoryHint = CATEGORY_CONTEXT[category] || category;
+  const context = previousQA.map(qa => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
+  const answeredTopics = previousQA.map(qa => qa.question).join(', ');
 
-  const prompt = `You are a shopping assistant helping someone find the perfect ${category}.
-Context: ${categoryHint}
-${modeInstructions}
-${previousContext}
+  const topicGuides = {
+    laptop: `Possible topics (pick most relevant next one NOT yet covered): operating system, processor brand/tier, RAM amount (exact GB), screen size (exact inches), screen resolution & refresh rate, storage size & type (SSD/HDD), GPU requirement, battery life priority, weight/portability priority, build material/aesthetics, ports & connectivity, brand preference, display quality (colour accuracy vs brightness vs refresh rate). Deep Dive: ask exact numbers (e.g. "How much RAM?" not "RAM preferences?").`,
+    gpu: `Possible topics: primary resolution target (1080p/1440p/4K), target frame rate, ray tracing importance, VRAM amount needed, power supply wattage, case size constraints, specific games/workloads, brand preference (Nvidia/AMD), new or used, dual-GPU slot size.`,
+    headphones: `Possible topics: form factor (over-ear/on-ear/in-ear), open vs closed back, wired vs wireless, codec support (aptX/LDAC/AAC), noise cancellation requirement, microphone need, use environment (commute/studio/office/gym), driver type preference, impedance (for amplifier), brand preference.`,
+    keyboard: `Possible topics: switch type (linear/tactile/clicky), wireless vs wired, form factor (full/TKL/65%/60%), RGB importance, hot-swap requirement, keycap material, actuation force preference, sound level (office/home), software ecosystem, build material (plastic/aluminium).`,
+    monitor: `Possible topics: panel type (IPS/VA/OLED/TN), resolution (1080p/1440p/4K), refresh rate, response time, screen size, HDR requirement, G-Sync/FreeSync, colour accuracy (for creative work), curvature, aspect ratio (ultrawide?), connectivity (DisplayPort/HDMI/USB-C).`,
+    smartphone: `Possible topics: operating system (Android/iOS), screen size, camera priority (main sensor/zoom/video), battery life, performance tier, 5G requirement, storage amount, brand preference, form factor (standard/plus/foldable), update longevity priority.`,
+    bike: `Possible topics: riding terrain (road/trail/gravel/commute/mixed), frame material (aluminium/carbon/steel), groupset tier (Shimano tier), wheel size, electric assist (e-bike?), intended distance, rider height/frame size, gearing range, brakes (disc/rim), fender/rack compatibility.`,
+    tv: `Possible topics: screen size (exact inches), panel technology (OLED/QLED/LED), primary use (movies/gaming/sports/mixed), refresh rate (60Hz/120Hz), HDR standard (Dolby Vision/HDR10+), smart TV OS, room lighting (bright/dark), viewing distance, wall mount or stand, HDMI 2.1 need.`,
+    speakers: `Possible topics: use case (desktop/home theatre/portable/outdoor), powered vs passive, connectivity (Bluetooth/WiFi/wired), room size, stereo vs soundbar vs multi-room, bass priority, brand ecosystem (Sonos/Bose/etc.), voice assistant integration.`,
+  };
 
-Generate exactly ${aiCount} questions.
+  const topicGuide = topicGuides[category] || `Cover use case, key features, form factor, brand preference, and any technical specs relevant to ${category}.`;
 
-RULES:
-- Do NOT ask about budget or price (handled separately)
-- Do NOT ask about gender (handled separately)
-- Do NOT repeat any topic already covered in previous Q&A
-- For the FIRST batch, include a brand preference question
-- Use A–E multiple-choice options when predefined choices help (E is always "E – Other, please specify")
-- Use free-text strings for questions needing open-ended technical detail
+  const modeNote = isVague
+    ? `This is Quick Match — ask a BROAD lifestyle question. One preference at a time.`
+    : `This is Deep Dive — ask a SPECIFIC TECHNICAL question about ONE exact spec. Use precise options (e.g. exact GB of RAM, exact screen size in inches). Do not bundle specs together.`;
 
-Return ONLY a valid JSON array. Each item is either:
-- A plain string: "Your question here?"
-- An object: {"question": "Your question?", "options": ["A option", "B option", "C option", "D option", "E – Other, please specify"]}
+  const prompt = `You are a shopping assistant. Generate the NEXT single question for buying a ${category}.
 
-Example: {"question": "How much RAM do you need?", "options": ["8 GB", "16 GB", "32 GB", "64 GB+", "E – Other, please specify"]}`;
+${modeNote}
+This is question ${qNum} of ${maxQ}.
+
+${topicGuide}
+
+Previous Q&A so far:
+${context || 'None yet.'}
+
+Already covered topics: ${answeredTopics || 'None.'}
+
+STRICT RULES:
+1. Ask about EXACTLY ONE thing — never two specs in the same question
+2. Do NOT repeat or rephrase any already-covered topic
+3. Adapt to the user's answers — if they said "work laptop", only ask work-relevant follow-ups, NOT gaming questions
+4. For Deep Dive: ask for exact values (16GB vs 32GB RAM, not "how much RAM do you need generally")
+5. Always include "No preference" as the last option when using options
+
+Return ONLY valid JSON:
+{
+  "question": "Single focused question?",
+  "options": ["Option A", "Option B", "Option C", "No preference"]
+}
+OR for free-text:
+{
+  "question": "Open ended question?",
+  "options": null
+}`;
 
   const msg = await getClient().messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 800,
+    max_tokens: 400,
     messages: [{ role: 'user', content: prompt }],
   });
 
   const text = msg.content[0].text.trim();
-  const jsonMatch = text.match(/\[[\s\S]*\]/);
-  let aiQuestions = JSON.parse(jsonMatch ? jsonMatch[0] : text);
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
 
-  // Inject required questions at the front of first batch
-  if (isFirstBatch) {
-    const injected = [];
-    if (!hasBudget) injected.push(budgetQuestion(category));
-    if (WEARABLE_CATEGORIES.has(category) && !hasGender) injected.push(GENDER_QUESTION);
-    aiQuestions = [...injected, ...aiQuestions];
+  // Ensure "No preference" is always present for option questions
+  if (parsed.options && !parsed.options.some(o => o.toLowerCase().includes('preference'))) {
+    parsed.options.push('No preference');
   }
 
-  return aiQuestions.slice(0, targetCount);
+  return { done: false, ...parsed };
 }
 
-export async function shouldContinueQuestions({ mode, previousQA, batchIndex }) {
-  if (mode === 'vague') return false;
-  // Deep Dive always runs exactly 3 batches (~12 questions) — no early stopping
-  if (previousQA.length >= SPECIFIC_MAX_QUESTIONS) return false;
-  return batchIndex < 3;
-}
+// --- SEARCH QUERIES ---
 
 export async function generateSearchQueries({ category, mode, previousQA, country, stores }) {
   const isVague = mode === 'vague';
-  const context = previousQA.map((qa) => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
+  const context = previousQA.map(qa => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
   const budget = extractBudget(previousQA);
-  const budgetNote = budget ? `User budget: ${budget}. Include price filters in queries.` : '';
-  const regionNote = country && country !== 'United States'
-    ? `User is in ${country}. Prioritise queries targeting local retailers: ${stores || country}.
-       Include region-specific queries like "best [product] ${country} 2024" and "buy [product] ${country}".
-       Use local retailer site: queries where possible (e.g. site:bol.com for Netherlands, site:amazon.de for Germany).`
-    : '';
+
+  // Build region-specific retailer targets
+  const regionRetailers = country && country !== 'United States'
+    ? `Focus on retailers available in ${country}: ${stores || country}. Include queries like "buy [product] ${country}" and site-specific queries.`
+    : `Focus on US retailers: amazon.com, bestbuy.com, newegg.com, bhphotovideo.com.`;
 
   const prompt = `You are a shopping expert for ${category}.
-User preferences:
+User needs:
 ${context}
-${budgetNote}
-${regionNote}
 
-Generate ${isVague ? 6 : 10} search queries to find matching products and reviews.
-Include:
-- Retailer queries targeting ${country || 'US'} stores, with price range if budget known
-- Review/opinion queries: "[product] reddit review 2024 pros cons"
-- At least 2 region-specific queries if user is outside the US
+Generate ${isVague ? 5 : 8} search queries. Mix:
+1. Product discovery: "best [specific type] [year]" review/roundup queries
+2. SHOPPING queries: "[exact product name] buy ${country || 'online'}" — these find actual purchase pages
+3. Price queries: "[product] price ${country || ''} ${budget ? budget : ''}"
 
+${regionRetailers}
+${budget ? `Budget: ${budget} — include price constraint in at least 2 queries.` : ''}
+
+Make queries specific based on the user's answers — not generic.
 Return ONLY a JSON array of strings.`;
 
   const msg = await getClient().messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 600,
+    max_tokens: 500,
     messages: [{ role: 'user', content: prompt }],
   });
 
@@ -179,55 +203,62 @@ Return ONLY a JSON array of strings.`;
   return JSON.parse(jsonMatch ? jsonMatch[0] : text);
 }
 
+// --- RANK AND FORMAT ---
+
 export async function rankAndFormatResults({ category, mode, previousQA, rawResults, images = [], feedback = null, country, stores }) {
   const isVague = mode === 'vague';
   const targetCount = isVague ? 10 : 7;
-  const context = previousQA.map((qa) => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
+  const context = previousQA.map(qa => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
   const budget = extractBudget(previousQA);
-  const budgetNote = budget
-    ? `STRICT BUDGET RULE: The user's budget is "${budget}". Only include products within or very close to this budget. Exclude anything clearly over budget.`
+
+  const budgetRule = budget && budget !== 'No preference'
+    ? `STRICT BUDGET: "${budget}" — exclude products clearly over this budget.`
     : '';
-  const feedbackNote = feedback ? `\nUser refinement feedback: "${feedback}" — prioritise this.` : '';
-  const regionNote = country && country !== 'United States'
-    ? `REGION: User is in ${country}. Strongly prefer products available through local retailers (${stores || country}). Avoid recommending US-only products or deals that won't ship/apply to ${country}.`
+  const regionRule = country && country !== 'United States'
+    ? `REGION: User is in ${country}. Strongly prefer products from local retailers (${stores || country}). Exclude US-only deals.`
     : '';
+  const feedbackNote = feedback ? `User feedback: "${feedback}" — prioritise this.` : '';
 
   const prompt = `You are a shopping expert for ${category}.
 
-User preferences:
+User answers:
 ${context}
-${budgetNote}${feedbackNote}
-${regionNote}
+${budgetRule}
+${regionRule}
+${feedbackNote}
 
-Raw search results (product pages + reviews):
+Raw search results:
 ${JSON.stringify(rawResults, null, 2)}
 
-Available images (match to products by domain/name):
+Available images:
 ${images.slice(0, 20).join('\n')}
 
-Select the top ${targetCount} products that best match the user's needs AND budget.
-For each product:
-- Prefer URLs from actual retailer pages (amazon.com, bestbuy.com, newegg.com, manufacturer sites)
-- Extract real USD prices from content; use "Check price" only if truly not found
-- Extract community sentiment from review content
-- Try to match an imageUrl from the images list
+TASK: Return ${targetCount} product recommendations. Rules:
+- GROUP variants of the same model (e.g. same laptop, different RAM/storage) into ONE entry with a "variants" array. Do not list the same model multiple times.
+- For URL: prefer actual product listing pages from retailers (amazon, bestbuy, bol.com, coolblue, etc.). Avoid review sites as the main URL.
+- For price: ONLY use a price explicitly stated in the search result snippets. Do not estimate. Use "Check price" if not found in results.
+- For imageUrl: match from available images by domain/product name, or use null.
+- Extract community sentiment from any review content in results.
 
-Return ONLY valid JSON array (no markdown):
+Return ONLY valid JSON array:
 [
   {
-    "name": "Full Product Name",
-    "price": "$X",
-    "url": "https://...",
+    "name": "Product Model Name (without config details)",
+    "variants": [
+      {"config": "16GB / 512GB SSD / RTX 4060", "price": "€999", "url": "https://bol.com/..."},
+      {"config": "32GB / 1TB SSD / RTX 4070", "price": "€1299", "url": "https://bol.com/..."}
+    ],
+    "url": "https://best-purchase-link.com/product",
     "imageUrl": "https://... or null",
-    "reason": "2 sentences on why this matches this user's specific answers.",
+    "reason": "2 sentences explaining why this fits this user's specific answers.",
     "pros": ["Community-praised aspect 1", "Praised aspect 2", "Praised aspect 3"],
     "cons": ["Common criticism 1", "Common criticism 2"],
-    "communityNote": "1 sentence summarising overall community/reviewer sentiment.",
-    "specs": ["Spec 1", "Spec 2", "Spec 3", "Spec 4"],
+    "communityNote": "1 sentence on overall community/reviewer sentiment.",
+    "specs": ["Key spec 1", "Key spec 2", "Key spec 3", "Key spec 4"],
     "score": 95
   }
 ]
-Sort by score descending.`;
+Sort by score. No markdown, no explanation outside JSON.`;
 
   const msg = await getClient().messages.create({
     model: 'claude-sonnet-4-6',
@@ -240,33 +271,52 @@ Sort by score descending.`;
   return JSON.parse(jsonMatch ? jsonMatch[0] : text);
 }
 
-export async function refineWithFeedback({ category, originalQA, currentProducts, feedback }) {
-  const context = originalQA.map((qa) => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
-  const budget = extractBudget(originalQA);
-  const productsContext = currentProducts.map((p, i) => `${i + 1}. ${p.name} (${p.price || 'unknown'})`).join('\n');
+// --- MARKET SUMMARY ---
 
-  const prompt = `You are a friendly shopping assistant for ${category}.
-Original preferences:
+export async function generateMarketSummary({ category, previousQA, country }) {
+  const context = previousQA.map(qa => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n');
+  const budget = extractBudget(previousQA);
+  const regionNote = country ? `in ${country}` : '';
+
+  const prompt = `You are a shopping expert. Write a brief 2-3 sentence market overview for someone buying a ${category} ${regionNote}.
+
+Their profile:
 ${context}
-${budget ? `Budget: ${budget} — maintain this constraint.` : ''}
 
-Current products shown:
-${productsContext}
-
-User feedback: "${feedback}"
-
-1. Write a warm 1–2 sentence acknowledgement
-2. Generate 6–8 new search queries addressing their feedback while keeping original preferences and budget
-
-Return ONLY valid JSON:
-{
-  "message": "...",
-  "queries": ["query 1", "query 2", ...]
-}`;
+Cover: what the current market looks like at ${budget || 'their budget'}, the best value options right now, and any key buying tips.
+Be specific and helpful. Plain text only, no bullet points.`;
 
   const msg = await getClient().messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 700,
+    max_tokens: 200,
+    messages: [{ role: 'user', content: prompt }],
+  });
+
+  return msg.content[0].text.trim();
+}
+
+// --- REFINE ---
+
+export async function refineWithFeedback({ category, originalQA, currentProducts, feedback }) {
+  const context = originalQA.map(qa => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
+  const budget = extractBudget(originalQA);
+  const productsContext = currentProducts.map((p, i) => `${i + 1}. ${p.name}`).join('\n');
+
+  const prompt = `Shopping assistant for ${category}.
+Original preferences: ${context}
+${budget && budget !== 'No preference' ? `Budget: ${budget} — keep this constraint.` : ''}
+Current results: ${productsContext}
+User feedback: "${feedback}"
+
+1. Acknowledge feedback warmly in 1-2 sentences.
+2. Generate 5-7 targeted search queries addressing the feedback.
+
+Return ONLY valid JSON:
+{"message": "...", "queries": ["q1", "q2", "q3", "q4", "q5"]}`;
+
+  const msg = await getClient().messages.create({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 600,
     messages: [{ role: 'user', content: prompt }],
   });
 

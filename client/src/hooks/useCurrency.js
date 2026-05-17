@@ -7,6 +7,7 @@ export const REGIONS = [
   { country: 'Belgium',     code: 'BE', currency: 'EUR', locale: 'nl-BE', flag: '🇧🇪', stores: 'bol.com, coolblue.be' },
   { country: 'Spain',       code: 'ES', currency: 'EUR', locale: 'es-ES', flag: '🇪🇸', stores: 'amazon.es, pccomponentes.com' },
   { country: 'Italy',       code: 'IT', currency: 'EUR', locale: 'it-IT', flag: '🇮🇹', stores: 'amazon.it' },
+  { country: 'Poland',      code: 'PL', currency: 'PLN', locale: 'pl-PL', flag: '🇵🇱', stores: 'allegro.pl, amazon.pl, x-kom.pl' },
   { country: 'United Kingdom', code: 'GB', currency: 'GBP', locale: 'en-GB', flag: '🇬🇧', stores: 'amazon.co.uk, currys.co.uk' },
   { country: 'United States',  code: 'US', currency: 'USD', locale: 'en-US', flag: '🇺🇸', stores: 'amazon.com, bestbuy.com, newegg.com' },
   { country: 'Canada',      code: 'CA', currency: 'CAD', locale: 'en-CA', flag: '🇨🇦', stores: 'amazon.ca, bestbuy.ca' },
