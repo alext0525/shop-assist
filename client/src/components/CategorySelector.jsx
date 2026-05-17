@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 
 const ALL_CATEGORIES = [
   { id: 'backpack',        label: 'Backpack',          emoji: '🎒', description: 'EDC, travel, hiking, school', group: 'Everyday' },
+  { id: 'jewelry',         label: 'Jewellery',         emoji: '💍', description: 'Rings, necklaces, watches & more', group: 'Fashion' },
   { id: 'bike',            label: 'Bike',              emoji: '🚲', description: 'Road, mountain, e-bike, commuter', group: 'Sports' },
   { id: 'camera-filter',   label: 'Camera Filter',     emoji: '🔮', description: 'ND, polarising, UV, graduated', group: 'Camera' },
   { id: 'camera-flash',    label: 'Camera Flash',      emoji: '⚡', description: 'Speedlites, strobes, TTL flashes', group: 'Camera' },
@@ -34,6 +35,7 @@ const GROUP_COLORS = {
   Mobile:   { bg: 'rgba(249,115,22,0.08)', border: 'rgba(249,115,22,0.25)', text: '#c2410c' },
   Sports:   { bg: 'rgba(34,197,94,0.08)',  border: 'rgba(34,197,94,0.25)',  text: '#15803d' },
   Everyday: { bg: 'rgba(148,163,184,0.08)',border: 'rgba(148,163,184,0.25)',text: '#475569' },
+  Fashion:  { bg: 'rgba(244,114,182,0.08)',border: 'rgba(244,114,182,0.25)',text: '#be185d' },
 };
 
 export default function CategorySelector({ onSelect }) {

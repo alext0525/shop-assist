@@ -19,8 +19,15 @@ export const CATEGORY_CONTEXT = {
   speakers:       'Bluetooth speakers, bookshelf speakers, soundbars, portable speakers, party speakers',
   tablet:         'iPad, Android tablets, Windows tablets, drawing tablets, e-readers',
   tv:             '4K TVs, OLED TVs, QLED TVs, smart TVs, gaming TVs, budget TVs',
-  bike:           'road bikes, mountain bikes, e-bikes, commuter bikes, gravel bikes, hybrid bikes',
-  tripod:         'camera tripods, travel tripods, gorillapods, video tripods, monopods, fluid head tripods',
+  bike:               'road bikes, mountain bikes, e-bikes, commuter bikes, gravel bikes, hybrid bikes',
+  'jewelry-rings':    'engagement rings, wedding bands, fashion rings, signet rings, eternity rings, fine jewelry',
+  'jewelry-necklace': 'necklaces, chains, pendants, chokers, fine jewelry necklaces, gold and silver necklaces',
+  'jewelry-earrings': 'earrings, studs, hoops, drop earrings, dangle earrings, fine jewelry earrings',
+  'jewelry-bracelet': 'bracelets, bangles, cuffs, tennis bracelets, charm bracelets, fine jewelry bracelets',
+  'jewelry-watch':    'luxury watches, fashion watches, dress watches, Swiss watches, automatic watches, fine timepieces',
+  'jewelry-brooch':   'brooches, pins, decorative pins, vintage brooches, fashion brooches',
+  'jewelry-anklet':   'anklets, ankle bracelets, gold anklets, silver anklets, beach jewelry',
+  tripod:             'camera tripods, travel tripods, gorillapods, video tripods, monopods, fluid head tripods',
   'camera-flash': 'camera flashes, speedlites, TTL flashes, studio strobes, off-camera flash, ring lights',
   'camera-storage': 'SD cards, SDXC, CFexpress cards, XQD cards, camera memory cards for photo and video',
   'field-monitor': 'on-camera field monitors, director monitors, HDMI monitors for cameras, video assist monitors',
@@ -45,6 +52,13 @@ const BUDGET_RANGES = {
   tablet:         [200, 450, 800],
   tv:             [400, 800, 1500],
   bike:               [400, 800, 2000],
+  'jewelry-rings':    [200, 500, 1500, 5000],
+  'jewelry-necklace': [100, 300, 1000, 3000],
+  'jewelry-earrings': [50, 200, 800, 2500],
+  'jewelry-bracelet': [100, 300, 1000, 3000],
+  'jewelry-watch':    [300, 1000, 5000, 15000],
+  'jewelry-brooch':   [30, 100, 400],
+  'jewelry-anklet':   [30, 100, 400],
   tripod:             [50, 150, 400],
   'camera-flash':     [100, 300, 700],
   'camera-storage':   [20, 60, 150],
@@ -127,7 +141,18 @@ export async function generateNextQuestion({ category, mode, previousQA = [], cu
     'field-monitor': `Possible topics: screen size (inches), resolution (HD/4K), camera connection type (HDMI/SDI), use case (run-and-gun/studio/gimbal), brightness (nits) for outdoor use, battery system (Sony NP/Canon LP/V-mount), waveform/vectorscope need, touchscreen requirement.`,
     microphone: `Possible topics: use case (video/podcast/interview/streaming/music), mounting (on-camera/boom/desk/clip-on), wired vs wireless, polar pattern (shotgun/cardioid/omni), connection type (XLR/3.5mm/USB), phantom power availability, environment (outdoor/indoor/noisy), brand preference.`,
     'camera-filter': `Possible topics: lens diameter (mm, e.g. 77mm), filter type needed (ND/polariser/UV/graduated), ND strength (3-stop/6-stop/10-stop or variable), filter thread system (individual/square system), material (glass/resin), camera use (photo/video/both), brand preference.`,
+    'jewelry-rings':    JEWELRY_TOPICS('ring', 'ring size, stone shape (round/oval/cushion/emerald cut), band width, stackable or solo'),
+    'jewelry-necklace': JEWELRY_TOPICS('necklace', 'chain length (inches), pendant size, layering style, clasp type'),
+    'jewelry-earrings': JEWELRY_TOPICS('earrings', 'earring back type (push-back/screw-back/huggie), size, for pierced or clip-on'),
+    'jewelry-bracelet': JEWELRY_TOPICS('bracelet', 'wrist size, clasp type, adjustable or fixed, stackable'),
+    'jewelry-watch':    `Possible topics: movement type (automatic/quartz/manual), case diameter (mm), case material (steel/gold/titanium), dial colour, strap type (leather/bracelet/rubber), water resistance, brand (Rolex/Omega/Tudor/Seiko/Longines etc.), complications needed (date/chronograph), new vs pre-owned, investment potential. Deep dive into brand reputation using community reviews.`,
+    'jewelry-brooch':   JEWELRY_TOPICS('brooch', 'size, pin back strength, vintage vs modern style'),
+    'jewelry-anklet':   JEWELRY_TOPICS('anklet', 'ankle circumference, clasp type, adjustable or fixed'),
   };
+
+function JEWELRY_TOPICS(type, extras) {
+  return `Possible topics: metal type (9k/14k/18k yellow gold, white gold, rose gold, sterling silver, platinum), gemstone (diamond/ruby/sapphire/no stone), brand preference (Tiffany/Cartier/Pandora/local jeweler/no preference), quality tier (fashion/fine/luxury), occasion (everyday/special/gift), style (classic/minimalist/vintage/statement), hallmark/certification importance (GIA/IGI), who it is for (self/partner/gift), ${extras}. For Deep Dive: ask about brand reputation research — community reviews from r/Jewelry, r/EngagementRings, Trustpilot for the jeweler.`;
+}
 
   const topicGuide = topicGuides[category] || `Cover use case, key features, form factor, brand preference, and any technical specs relevant to ${category}.`;
 
@@ -195,19 +220,22 @@ export async function generateSearchQueries({ category, mode, previousQA, countr
     ? `Focus on retailers available in ${country}: ${stores || country}. Include queries like "buy [product] ${country}" and site-specific queries.`
     : `Focus on US retailers: amazon.com, bestbuy.com, newegg.com, bhphotovideo.com.`;
 
+  const isJewelry = category.startsWith('jewelry-');
+  const jewelryNote = isJewelry
+    ? `Include 2 brand-reputation queries: "[brand name] jewelry review reddit quality" and "best [jewelry type] brands [country] 2024".`
+    : '';
+
   const prompt = `You are a shopping expert for ${category}.
 User needs:
 ${context}
 
-Generate ${isVague ? 5 : 8} search queries. Mix:
-1. Product discovery: "best [specific type] [year]" review/roundup queries
-2. SHOPPING queries: "[exact product name] buy ${country || 'online'}" — these find actual purchase pages
-3. Price queries: "[product] price ${country || ''} ${budget ? budget : ''}"
+Generate ${isVague ? 4 : 6} search queries. Mix:
+1. Product discovery: "best [specific type] [year]" review/roundup
+2. Shopping: "[product] buy ${country || 'online'}"${budget ? ` under ${budget}` : ''}
+3. ${isJewelry ? 'Brand reputation: "[brand] jewelry review quality reddit"' : `Price: "[product] price ${country || ''} ${budget || ''}"` }
 
 ${regionRetailers}
-${budget ? `Budget: ${budget} — include price constraint in at least 2 queries.` : ''}
-
-Make queries specific based on the user's answers — not generic.
+${jewelryNote}
 Return ONLY a JSON array of strings.`;
 
   const msg = await getClient().messages.create({
@@ -237,50 +265,42 @@ export async function rankAndFormatResults({ category, mode, previousQA, rawResu
     : '';
   const feedbackNote = feedback ? `User feedback: "${feedback}" — prioritise this.` : '';
 
+  const isJewelry = category.startsWith('jewelry-');
+  const jewelryExtra = isJewelry
+    ? `- For jewelry: communityNote MUST reference brand reputation from the r/Jewelry, r/EngagementRings or similar communities if found. Note hallmarking, resale value, and craftmanship reputation.`
+    : '';
+
+  // Trim raw results to reduce tokens — keep only url, title, content snippet
+  const trimmedResults = rawResults.slice(0, 12).map(r => ({
+    url: r.url,
+    title: r.title,
+    content: r.content?.slice(0, 300),
+  }));
+
   const prompt = `You are a shopping expert for ${category}.
 
-User answers:
-${context}
-${budgetRule}
-${regionRule}
-${feedbackNote}
+User: ${context}
+${budgetRule} ${regionRule} ${feedbackNote}
 
-Raw search results:
-${JSON.stringify(rawResults, null, 2)}
+Search results:
+${JSON.stringify(trimmedResults)}
 
-Available images:
-${images.slice(0, 20).join('\n')}
+Images: ${images.slice(0, 8).join('\n')}
 
-TASK: Return ${targetCount} product recommendations. Rules:
-- GROUP variants of the same model (e.g. same laptop, different RAM/storage) into ONE entry with a "variants" array. Do not list the same model multiple times.
-- For URL: prefer actual product listing pages from retailers (amazon, bestbuy, bol.com, coolblue, etc.). Avoid review sites as the main URL.
-- For price: ONLY use a price explicitly stated in the search result snippets. Do not estimate. Use "Check price" if not found in results.
-- For imageUrl: match from available images by domain/product name, or use null.
-- Extract community sentiment from any review content in results.
+Return ${targetCount} products as JSON array. Rules:
+- Group same model variants (different configs) into ONE entry with a variants array
+- URL: retailer product pages only (not review sites)
+- Price: only if explicitly in results, else "Check price"
+- imageUrl: best match from images or null
+- Extract community sentiment from results
+${jewelryExtra}
 
-Return ONLY valid JSON array:
-[
-  {
-    "name": "Product Model Name (without config details)",
-    "variants": [
-      {"config": "16GB / 512GB SSD / RTX 4060", "price": "€999", "url": "https://bol.com/..."},
-      {"config": "32GB / 1TB SSD / RTX 4070", "price": "€1299", "url": "https://bol.com/..."}
-    ],
-    "url": "https://best-purchase-link.com/product",
-    "imageUrl": "https://... or null",
-    "reason": "2 sentences explaining why this fits this user's specific answers.",
-    "pros": ["Community-praised aspect 1", "Praised aspect 2", "Praised aspect 3"],
-    "cons": ["Common criticism 1", "Common criticism 2"],
-    "communityNote": "1 sentence on overall community/reviewer sentiment.",
-    "specs": ["Key spec 1", "Key spec 2", "Key spec 3", "Key spec 4"],
-    "score": 95
-  }
-]
-Sort by score. No markdown, no explanation outside JSON.`;
+[{"name":"...","variants":[{"config":"...","price":"...","url":"..."}],"url":"...","imageUrl":null,"reason":"2 sentences.","pros":["..."],"cons":["..."],"communityNote":"...","specs":["..."],"score":95}]
+No markdown.`;
 
   const msg = await getClient().messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 6000,
+    max_tokens: 4000,
     messages: [{ role: 'user', content: prompt }],
   });
 

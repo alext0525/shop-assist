@@ -7,23 +7,24 @@ export async function searchProducts(query) {
     body: JSON.stringify({
       api_key: process.env.TAVILY_API_KEY,
       query,
-      search_depth: 'advanced',
-      max_results: 5,
+      search_depth: 'basic',  // faster than 'advanced'
+      max_results: 3,          // was 5 — cuts Tavily time significantly
       include_images: true,
     }),
   });
 
-  if (!response.ok) {
-    throw new Error(`Tavily search failed: ${response.statusText}`);
-  }
+  if (!response.ok) throw new Error(`Tavily search failed: ${response.statusText}`);
 
   const data = await response.json();
-  const images = (data.images || []).map((img) => (typeof img === 'string' ? img : img.url)).filter(Boolean);
+  const images = (data.images || []).map(img => (typeof img === 'string' ? img : img.url)).filter(Boolean);
   return { results: data.results || [], images };
 }
 
 export async function searchMultiple(queries) {
-  const settled = await Promise.allSettled(queries.map(searchProducts));
+  // Run all queries in parallel, cap at 6 queries to keep it fast
+  const capped = queries.slice(0, 6);
+  const settled = await Promise.allSettled(capped.map(searchProducts));
+
   const allResults = [];
   const allImages = [];
   const seen = new Set();
@@ -40,5 +41,5 @@ export async function searchMultiple(queries) {
     }
   }
 
-  return { results: allResults, images: [...new Set(allImages)].slice(0, 30) };
+  return { results: allResults, images: [...new Set(allImages)].slice(0, 12) };
 }
