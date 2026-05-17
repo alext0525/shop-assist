@@ -1,4 +1,4 @@
-const LABELS = { keyboard: 'Keyboard', backpack: 'Backpack', gpu: 'Graphics Card', headphones: 'Headphones', monitor: 'Monitor', mouse: 'Mouse', laptop: 'Laptop', smartphone: 'Smartphone', 'office-chair': 'Office Chair', smartwatch: 'Smartwatch', 'running-shoes': 'Running Shoes' };
+const LABELS = { keyboard: 'Keyboard', backpack: 'Backpack', gpu: 'Graphics Card', headphones: 'Headphones', monitor: 'Monitor', mouse: 'Mouse', laptop: 'Laptop', smartphone: 'Smartphone', 'office-chair': 'Office Chair', smartwatch: 'Smartwatch', 'running-shoes': 'Running Shoes', speakers: 'Speakers', tablet: 'Tablet', tv: 'TV', bike: 'Bike', tripod: 'Tripod', 'camera-flash': 'Camera Flash', 'camera-storage': 'Camera Storage', 'field-monitor': 'Field Monitor', microphone: 'Microphone', 'camera-filter': 'Camera Filter' };
 
 export default function ModeSelector({ category, onSelect, onBack }) {
   return (

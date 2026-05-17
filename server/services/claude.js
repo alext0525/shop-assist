@@ -20,6 +20,12 @@ export const CATEGORY_CONTEXT = {
   tablet:         'iPad, Android tablets, Windows tablets, drawing tablets, e-readers',
   tv:             '4K TVs, OLED TVs, QLED TVs, smart TVs, gaming TVs, budget TVs',
   bike:           'road bikes, mountain bikes, e-bikes, commuter bikes, gravel bikes, hybrid bikes',
+  tripod:         'camera tripods, travel tripods, gorillapods, video tripods, monopods, fluid head tripods',
+  'camera-flash': 'camera flashes, speedlites, TTL flashes, studio strobes, off-camera flash, ring lights',
+  'camera-storage': 'SD cards, SDXC, CFexpress cards, XQD cards, camera memory cards for photo and video',
+  'field-monitor': 'on-camera field monitors, director monitors, HDMI monitors for cameras, video assist monitors',
+  microphone:     'shotgun microphones, lavalier mics, USB microphones, podcast mics, on-camera mics, wireless mic systems',
+  'camera-filter': 'ND filters, circular polarising filters, UV filters, graduated ND, variable ND, lens filter kits',
 };
 
 // USD price range breakpoints per category
@@ -38,7 +44,13 @@ const BUDGET_RANGES = {
   speakers:       [50, 150, 400],
   tablet:         [200, 450, 800],
   tv:             [400, 800, 1500],
-  bike:           [400, 800, 2000],
+  bike:               [400, 800, 2000],
+  tripod:             [50, 150, 400],
+  'camera-flash':     [100, 300, 700],
+  'camera-storage':   [20, 60, 150],
+  'field-monitor':    [150, 400, 800],
+  microphone:         [50, 150, 400],
+  'camera-filter':    [30, 80, 200],
 };
 
 const WEARABLE_CATEGORIES = new Set(['running-shoes', 'smartwatch']);
@@ -109,6 +121,12 @@ export async function generateNextQuestion({ category, mode, previousQA = [], cu
     bike: `Possible topics: riding terrain (road/trail/gravel/commute/mixed), frame material (aluminium/carbon/steel), groupset tier (Shimano tier), wheel size, electric assist (e-bike?), intended distance, rider height/frame size, gearing range, brakes (disc/rim), fender/rack compatibility.`,
     tv: `Possible topics: screen size (exact inches), panel technology (OLED/QLED/LED), primary use (movies/gaming/sports/mixed), refresh rate (60Hz/120Hz), HDR standard (Dolby Vision/HDR10+), smart TV OS, room lighting (bright/dark), viewing distance, wall mount or stand, HDMI 2.1 need.`,
     speakers: `Possible topics: use case (desktop/home theatre/portable/outdoor), powered vs passive, connectivity (Bluetooth/WiFi/wired), room size, stereo vs soundbar vs multi-room, bass priority, brand ecosystem (Sonos/Bose/etc.), voice assistant integration.`,
+    tripod: `Possible topics: camera type (DSLR/mirrorless/smartphone/video), max load weight, primary use (travel/studio/video/hiking), height range needed, head type (ball head/pan-tilt/fluid), material (aluminium/carbon fibre), travel pack size, quick release type, stability vs weight priority.`,
+    'camera-flash': `Possible topics: camera brand (for TTL compatibility), indoor vs outdoor use, studio vs on-location, guide number needed, high-speed sync requirement, wireless trigger system, battery type, modifiers needed, video/photo or both.`,
+    'camera-storage': `Possible topics: camera model (determines compatible card type), card type needed (SD/CFexpress/XQD), capacity needed (GB), video resolution (4K/8K/slow-mo needs fast write speed), read/write speed priority, how many cards needed, brand reliability preference.`,
+    'field-monitor': `Possible topics: screen size (inches), resolution (HD/4K), camera connection type (HDMI/SDI), use case (run-and-gun/studio/gimbal), brightness (nits) for outdoor use, battery system (Sony NP/Canon LP/V-mount), waveform/vectorscope need, touchscreen requirement.`,
+    microphone: `Possible topics: use case (video/podcast/interview/streaming/music), mounting (on-camera/boom/desk/clip-on), wired vs wireless, polar pattern (shotgun/cardioid/omni), connection type (XLR/3.5mm/USB), phantom power availability, environment (outdoor/indoor/noisy), brand preference.`,
+    'camera-filter': `Possible topics: lens diameter (mm, e.g. 77mm), filter type needed (ND/polariser/UV/graduated), ND strength (3-stop/6-stop/10-stop or variable), filter thread system (individual/square system), material (glass/resin), camera use (photo/video/both), brand preference.`,
   };
 
   const topicGuide = topicGuides[category] || `Cover use case, key features, form factor, brand preference, and any technical specs relevant to ${category}.`;
