@@ -300,13 +300,36 @@ No markdown.`;
 
   const msg = await getClient().messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 4000,
+    max_tokens: 5500,
     messages: [{ role: 'user', content: prompt }],
   });
 
   const text = msg.content[0].text.trim();
-  const jsonMatch = text.match(/\[[\s\S]*\]/);
-  return JSON.parse(jsonMatch ? jsonMatch[0] : text);
+  return safeParseArray(text);
+}
+
+// Gracefully handle truncated JSON — extract all complete product objects
+function safeParseArray(text) {
+  // Try clean parse first
+  const fullMatch = text.match(/\[[\s\S]*\]/);
+  if (fullMatch) {
+    try { return JSON.parse(fullMatch[0]); } catch {}
+  }
+  // Response was truncated — pull out each complete {...} object individually
+  const objects = [];
+  let depth = 0, start = -1;
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === '{') { if (depth === 0) start = i; depth++; }
+    else if (text[i] === '}') {
+      depth--;
+      if (depth === 0 && start !== -1) {
+        try { objects.push(JSON.parse(text.slice(start, i + 1))); } catch {}
+        start = -1;
+      }
+    }
+  }
+  if (objects.length > 0) return objects;
+  throw new Error('Could not parse product results — please try again.');
 }
 
 // --- MARKET SUMMARY ---

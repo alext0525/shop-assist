@@ -33,6 +33,7 @@ export default function QuestionFlow({ category, mode, region, onComplete, onBac
   async function loadNext(qa) {
     setLoading(true);
     setFetchError(null);
+    setCurrentQ(null);
     setSelected([]);
     setTextAnswer('');
     try {
