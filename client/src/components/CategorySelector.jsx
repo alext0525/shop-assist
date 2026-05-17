@@ -38,7 +38,7 @@ export default function CategorySelector({ onSelect }) {
   const inputRef = useRef(null);
 
   useEffect(() => {
-    const t = setTimeout(() => inputRef.current?.focus(), 300);
+    const t = setTimeout(() => inputRef.current?.focus(), 400);
     return () => clearTimeout(t);
   }, []);
 
@@ -51,141 +51,136 @@ export default function CategorySelector({ onSelect }) {
       )
     : [];
 
-  const showResults = query.length > 0;
+  const hasQuery = query.length > 0;
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 flex flex-col" style={{ minHeight: 'calc(100dvh - 60px)' }}>
+    <div className="w-full max-w-6xl mx-auto px-4 flex gap-6" style={{ minHeight: 'calc(100dvh - 60px)' }}>
 
-      <div className="flex gap-6 flex-1">
+      {/* Left sidebar */}
+      <div className="hidden lg:flex flex-col w-48 flex-shrink-0 pt-10 self-start sticky top-24">
+        <p className="text-xs font-bold uppercase tracking-widest mb-3 px-1" style={{ color: 'var(--text-faint)' }}>
+          All categories
+        </p>
+        <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          {SORTED.map(cat => (
+            <button key={cat.id} onClick={() => onSelect(cat.id)}
+              className="flex items-center gap-2.5 w-full px-4 py-2.5 text-left text-sm"
+              style={{ color: 'var(--text-muted)', background: 'transparent', transition: 'all .2s ease' }}
+              onMouseEnter={e => { e.currentTarget.style.background = `rgba(${hexToRgb(cat.color)},.1)`; e.currentTarget.style.color = cat.color; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+            >
+              <span style={{ fontSize: 14 }}>{cat.emoji}</span>
+              <span className="font-medium truncate">{cat.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
 
-        {/* Left sidebar — always visible */}
-        <div className="hidden lg:flex flex-col w-48 flex-shrink-0 pt-10">
-          <p className="text-xs font-bold uppercase tracking-widest mb-3 px-1" style={{ color: 'var(--text-faint)' }}>All categories</p>
-          <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-            {SORTED.map(cat => (
-              <button key={cat.id} onClick={() => onSelect(cat.id)}
-                className="flex items-center gap-2.5 w-full px-4 py-2.5 text-left text-sm transition-all"
-                style={{ color: 'var(--text-muted)', background: 'transparent' }}
-                onMouseEnter={e => { e.currentTarget.style.background = `rgba(${hexToRgb(cat.color)},.1)`; e.currentTarget.style.color = cat.color; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
-              >
-                <span style={{ fontSize: 14 }}>{cat.emoji}</span>
-                <span className="font-medium truncate">{cat.label}</span>
-              </button>
-            ))}
+      {/* Center column — fixed layout, no jumps */}
+      <div className="flex-1 flex flex-col items-center pt-16 sm:pt-24">
+
+        {/* Hero text — fades in place, never moves */}
+        <div style={{
+          textAlign: 'center',
+          marginBottom: 32,
+          opacity: hasQuery ? 0.25 : 1,
+          transition: 'opacity .5s var(--ease-flow)',
+          pointerEvents: hasQuery ? 'none' : 'auto',
+        }}>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-5"
+            style={{ background: 'var(--accent-light)', color: 'var(--accent-text)', border: '1px solid var(--border)' }}>
+            AI-powered shopping
           </div>
+          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4" style={{
+            background: 'linear-gradient(135deg, #E2E8F0 0%, #A5B4FC 50%, #67E8F9 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            lineHeight: 1.15,
+          }}>
+            What are you<br />hunting for?
+          </h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: 15 }}>
+            Search or browse {SORTED.length} categories
+          </p>
         </div>
 
-        {/* Center — hero + search + results */}
-        <div className="flex-1 flex flex-col items-center justify-center min-h-0" style={{ paddingTop: showResults ? 32 : 0 }}>
-
-          {/* Hero — only when not searching */}
-          <div
-            className="text-center transition-all duration-700"
-            style={{
-              opacity: showResults ? 0.4 : 1,
-              transform: showResults ? 'translateY(-20px) scale(.97)' : 'translateY(0) scale(1)',
-              marginBottom: showResults ? 0 : 40,
-              filter: showResults ? 'blur(1px)' : 'none',
-            }}
-          >
-            {!showResults && (
-              <>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-5" style={{ background: 'var(--accent-light)', color: 'var(--accent-text)', border: '1px solid var(--border)' }}>
-                  AI-powered shopping
-                </div>
-                <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4" style={{
-                  background: 'linear-gradient(135deg, #E2E8F0 0%, #A5B4FC 50%, #67E8F9 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  lineHeight: 1.15,
-                }}>
-                  What are you<br />hunting for?
-                </h1>
-                <p className="text-base" style={{ color: 'var(--text-muted)' }}>
-                  Search or browse 22 categories
-                </p>
-              </>
+        {/* Search bar — stays exactly here, never moves */}
+        <div className="w-full max-w-lg" style={{ position: 'relative', zIndex: 10 }}>
+          <div className="relative">
+            <svg className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
+              width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+              style={{ color: focused ? 'var(--accent)' : 'var(--text-faint)', transition: 'color .3s' }}>
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              ref={inputRef}
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              placeholder="Search categories…  e.g. laptop, audio, camera"
+              style={{
+                width: '100%',
+                paddingLeft: 48,
+                paddingRight: search ? 48 : 20,
+                paddingTop: 18,
+                paddingBottom: 18,
+                background: 'var(--surface)',
+                border: `2px solid ${focused ? 'var(--accent)' : 'var(--border)'}`,
+                borderRadius: 20,
+                color: 'var(--text)',
+                fontSize: 15,
+                outline: 'none',
+                boxShadow: focused ? 'var(--glow)' : 'var(--shadow-md)',
+                transition: 'border-color .3s ease, box-shadow .3s ease',
+              }}
+            />
+            {search && (
+              <button
+                onClick={() => { setSearch(''); inputRef.current?.focus(); }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center"
+                style={{ background: 'var(--surface-3)', color: 'var(--text-faint)' }}
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <path d="M18 6 6 18M6 6l12 12"/>
+                </svg>
+              </button>
             )}
           </div>
 
-          {/* Search bar */}
-          <div className="w-full max-w-lg" style={{ transition: 'all .6s cubic-bezier(.16,1,.3,1)' }}>
-            <div className="relative">
-              <svg className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none transition-colors duration-300"
-                width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                style={{ color: focused ? 'var(--accent)' : 'var(--text-faint)' }}>
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-              </svg>
-              <input
-                ref={inputRef}
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                onFocus={() => setFocused(true)}
-                onBlur={() => setFocused(false)}
-                placeholder="Search categories…  e.g. lap, audio, camera"
-                style={{
-                  width: '100%',
-                  paddingLeft: 48,
-                  paddingRight: search ? 48 : 20,
-                  paddingTop: 18,
-                  paddingBottom: 18,
-                  background: 'var(--surface)',
-                  border: `2px solid ${focused ? 'var(--accent)' : 'var(--border)'}`,
-                  borderRadius: 20,
-                  color: 'var(--text)',
-                  fontSize: 16,
-                  outline: 'none',
-                  boxShadow: focused ? 'var(--glow)' : 'var(--shadow-md)',
-                  transition: 'border-color .3s cubic-bezier(.16,1,.3,1), box-shadow .3s cubic-bezier(.16,1,.3,1)',
-                }}
-              />
-              {search && (
-                <button
-                  onClick={() => { setSearch(''); inputRef.current?.focus(); }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center transition-all"
-                  style={{ background: 'var(--surface-3)', color: 'var(--text-faint)' }}
-                >
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6 6 18M6 6l12 12"/></svg>
-                </button>
-              )}
-            </div>
-
-            {/* Mobile category list — below search on small screens */}
-            <div className="lg:hidden mt-3 flex flex-wrap gap-2">
-              {SORTED.slice(0, showResults ? 0 : 8).map(cat => (
+          {/* Mobile pill shortcuts — only when not searching */}
+          {!hasQuery && (
+            <div className="lg:hidden mt-4 flex flex-wrap gap-2" style={{ transition: 'opacity .3s', opacity: hasQuery ? 0 : 1 }}>
+              {SORTED.slice(0, 8).map(cat => (
                 <button key={cat.id} onClick={() => onSelect(cat.id)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
-                  style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
+                  style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-muted)', transition: 'all .2s ease' }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = cat.color; e.currentTarget.style.color = cat.color; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
                 >
-                  <span>{cat.emoji}</span> {cat.label}
+                  {cat.emoji} {cat.label}
                 </button>
               ))}
-              {!showResults && SORTED.length > 8 && (
-                <span className="px-3 py-1.5 text-xs" style={{ color: 'var(--text-faint)' }}>+{SORTED.length - 8} more…</span>
-              )}
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* Search results */}
-          {showResults && (
-            <div className="w-full max-w-2xl mt-6">
-              {filtered.length === 0 ? (
-                <div className="text-center py-12 anim-fadein">
-                  <p className="text-4xl mb-3">🔍</p>
-                  <p className="font-semibold mb-1" style={{ color: 'var(--text)' }}>No matches for "{search}"</p>
-                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Try a different term or browse the sidebar</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {filtered.map((cat, idx) => (
-                    <ResultCard key={cat.id} cat={cat} idx={idx} onSelect={onSelect} />
-                  ))}
-                </div>
-              )}
+        {/* Results — appear smoothly below, bar stays put */}
+        <div className="w-full max-w-2xl mt-8" style={{ minHeight: 0 }}>
+          {hasQuery && filtered.length === 0 && (
+            <div className="text-center py-12 anim-fadein">
+              <p className="text-4xl mb-3">🔍</p>
+              <p className="font-semibold mb-1" style={{ color: 'var(--text)' }}>No matches for "{search}"</p>
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Try a different term or browse the sidebar</p>
+            </div>
+          )}
+
+          {hasQuery && filtered.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {filtered.map((cat, idx) => (
+                <ResultCard key={cat.id} cat={cat} idx={idx} onSelect={onSelect} />
+              ))}
             </div>
           )}
         </div>
@@ -205,7 +200,7 @@ function ResultCard({ cat, idx, onSelect }) {
       onMouseLeave={() => setHovered(false)}
       className="anim-scaleup flex flex-col items-start gap-3 p-4 rounded-2xl text-left"
       style={{
-        animationDelay: `${idx * 0.05}s`,
+        animationDelay: `${idx * 0.04}s`,
         background: hovered ? `rgba(${rgb},.1)` : 'var(--surface)',
         border: `1.5px solid ${hovered ? cat.color : 'var(--border)'}`,
         boxShadow: hovered ? `0 0 0 1px ${cat.color}22, 0 8px 32px rgba(${rgb},.2)` : 'var(--shadow)',
@@ -214,11 +209,19 @@ function ResultCard({ cat, idx, onSelect }) {
       }}
     >
       <div className="flex items-center justify-center w-11 h-11 rounded-xl"
-        style={{ background: `rgba(${rgb},.15)`, border: `1px solid rgba(${rgb},.3)`, boxShadow: hovered ? `0 0 16px rgba(${rgb},.5)` : 'none', transition: 'box-shadow .35s ease' }}>
+        style={{
+          background: `rgba(${rgb},.15)`,
+          border: `1px solid rgba(${rgb},.3)`,
+          boxShadow: hovered ? `0 0 16px rgba(${rgb},.5)` : 'none',
+          transition: 'box-shadow .35s ease',
+        }}>
         <span style={{ fontSize: 22 }}>{cat.emoji}</span>
       </div>
       <div>
-        <div className="text-sm font-bold mb-0.5" style={{ color: hovered ? cat.color : 'var(--text)', transition: 'color .2s' }}>{cat.label}</div>
+        <div className="text-sm font-bold mb-0.5"
+          style={{ color: hovered ? cat.color : 'var(--text)', transition: 'color .2s' }}>
+          {cat.label}
+        </div>
         <div className="text-xs" style={{ color: 'var(--text-faint)' }}>{cat.description}</div>
       </div>
     </button>
