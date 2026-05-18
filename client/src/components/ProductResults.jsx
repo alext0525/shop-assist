@@ -11,8 +11,13 @@ const LABELS = {
   tripod: 'Tripod', 'camera-flash': 'Camera Flash', 'camera-storage': 'Camera Storage',
   'field-monitor': 'Field Monitor', microphone: 'Microphone', 'camera-filter': 'Camera Filter',
   'jewelry-rings': 'Rings', 'jewelry-necklace': 'Necklaces', 'jewelry-earrings': 'Earrings',
-  'jewelry-bracelet': 'Bracelets', 'jewelry-watch': 'Watches', 'jewelry-brooch': 'Brooches',
+  'jewelry-bracelet': 'Bracelets', 'jewelry-watch': 'Fine Watches', 'jewelry-brooch': 'Brooches',
   'jewelry-anklet': 'Anklets',
+  cpu: 'CPU', motherboard: 'Motherboard', ram: 'RAM', ssd: 'SSD / Storage',
+  psu: 'Power Supply', 'pc-case': 'PC Case', 'cpu-cooler': 'CPU Cooler',
+  'headphones-over-ear': 'Over-ear Headphones', 'headphones-tws': 'True Wireless Earbuds',
+  'headphones-in-ear': 'In-ear / IEM', 'headphones-on-ear': 'On-ear Headphones',
+  'headphones-gaming': 'Gaming Headset', 'air-fryer': 'Air Fryer',
 };
 
 const RANK_STYLE = {
@@ -43,7 +48,15 @@ function resolveUrl(url, brandUrl) {
 }
 
 function EmojiPlaceholder({ category }) {
-  const map = { keyboard: '⌨️', backpack: '🎒', gpu: '🎮', headphones: '🎧', monitor: '🖥️', mouse: '🖱️', laptop: '💻', smartphone: '📱', speakers: '🔊', tablet: '📋', tv: '📺', bike: '🚲', 'office-chair': '🪑', smartwatch: '⌚', 'running-shoes': '👟' };
+  const map = {
+    keyboard: '⌨️', backpack: '🎒', gpu: '🎮', headphones: '🎧', monitor: '🖥️', mouse: '🖱️',
+    laptop: '💻', smartphone: '📱', speakers: '🔊', tablet: '📋', tv: '📺', bike: '🚲',
+    'office-chair': '🪑', smartwatch: '⌚', 'running-shoes': '👟', microphone: '🎤',
+    tripod: '📷', 'camera-flash': '⚡', 'camera-storage': '💾', 'field-monitor': '📹', 'camera-filter': '🔮',
+    cpu: '🔲', motherboard: '🔧', ram: '🧩', ssd: '💿', psu: '⚡', 'pc-case': '🗃️', 'cpu-cooler': '❄️',
+    'headphones-over-ear': '🎧', 'headphones-tws': '🎵', 'headphones-in-ear': '🎶',
+    'headphones-on-ear': '🎼', 'headphones-gaming': '🕹️', 'air-fryer': '🍟',
+  };
   return (
     <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--surface-2)' }}>
       <span style={{ fontSize: 48, opacity: 0.35 }}>{map[category] || '📦'}</span>

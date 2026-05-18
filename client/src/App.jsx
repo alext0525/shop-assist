@@ -16,7 +16,7 @@ const STAGES = {
   RESULTS: 'results',
 };
 
-const HAS_SUBCATEGORY = new Set(['jewelry']);
+const HAS_SUBCATEGORY = new Set(['jewelry', 'headphones']);
 
 export default function App() {
   const [stage, setStage] = useState(STAGES.CATEGORY);
@@ -98,6 +98,7 @@ export default function App() {
         )}
         {stage === STAGES.SUBCATEGORY && (
           <SubcategorySelector
+            category={category}
             onSelect={sub => { setCategory(sub); setStage(STAGES.MODE); }}
             onBack={() => setStage(STAGES.CATEGORY)}
           />

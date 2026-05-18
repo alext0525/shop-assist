@@ -1,25 +1,36 @@
 import { useState, useRef, useEffect } from 'react';
 
 const ALL_CATEGORIES = [
+  // Everyday
+  { id: 'air-fryer',       label: 'Air Fryer',       emoji: '🍟', description: 'Basket, dual zone, oven style',     group: 'Kitchen',   color: '#F97316' },
   { id: 'backpack',        label: 'Backpack',        emoji: '🎒', description: 'EDC, travel, hiking, school',        group: 'Everyday',  color: '#94A3B8' },
   { id: 'bike',            label: 'Bike',            emoji: '🚲', description: 'Road, mountain, e-bike, commuter',   group: 'Sports',    color: '#10B981' },
+  // Camera
   { id: 'camera-filter',   label: 'Cam Filter',      emoji: '🔮', description: 'ND, polarising, UV filters',         group: 'Camera',    color: '#A78BFA' },
   { id: 'camera-flash',    label: 'Cam Flash',       emoji: '⚡', description: 'Speedlites, strobes, TTL',           group: 'Camera',    color: '#A78BFA' },
   { id: 'camera-storage',  label: 'Cam Storage',     emoji: '💾', description: 'SD, CFexpress, XQD cards',          group: 'Camera',    color: '#A78BFA' },
   { id: 'field-monitor',   label: 'Field Monitor',   emoji: '📹', description: 'On-camera monitors',                group: 'Camera',    color: '#A78BFA' },
+  // PC
+  { id: 'cpu',             label: 'CPU',             emoji: '🔲', description: 'Intel Core Ultra, AMD Ryzen',        group: 'PC',        color: '#6366F1' },
+  { id: 'cpu-cooler',      label: 'CPU Cooler',      emoji: '❄️', description: 'Air towers, AIO liquid coolers',    group: 'PC',        color: '#6366F1' },
   { id: 'gpu',             label: 'Graphics Card',   emoji: '🎮', description: 'Gaming, creative, AI/ML',           group: 'PC',        color: '#6366F1' },
-  { id: 'headphones',      label: 'Headphones',      emoji: '🎧', description: 'Over-ear, in-ear, wireless',        group: 'Audio',     color: '#06B6D4' },
+  { id: 'headphones',      label: 'Headphones',      emoji: '🎧', description: 'Over-ear, in-ear, TWS, gaming',     group: 'Audio',     color: '#06B6D4' },
   { id: 'jewelry',         label: 'Jewellery',       emoji: '💍', description: 'Rings, necklaces, watches & more',  group: 'Fashion',   color: '#F472B6' },
   { id: 'keyboard',        label: 'Keyboard',        emoji: '⌨️', description: 'Mechanical, wireless, gaming',      group: 'PC',        color: '#6366F1' },
   { id: 'laptop',          label: 'Laptop',          emoji: '💻', description: 'Gaming, ultrabook, business',       group: 'PC',        color: '#6366F1' },
   { id: 'microphone',      label: 'Microphone',      emoji: '🎤', description: 'Shotgun, lavalier, USB, podcast',   group: 'Audio',     color: '#06B6D4' },
   { id: 'monitor',         label: 'Monitor',         emoji: '🖥️', description: 'Gaming, pro, ultrawide',           group: 'PC',        color: '#6366F1' },
+  { id: 'motherboard',     label: 'Motherboard',     emoji: '🔧', description: 'ATX, mATX, ITX, Intel & AMD',       group: 'PC',        color: '#6366F1' },
   { id: 'mouse',           label: 'Mouse',           emoji: '🖱️', description: 'Gaming, ergonomic, wireless',      group: 'PC',        color: '#6366F1' },
   { id: 'office-chair',    label: 'Office Chair',    emoji: '🪑', description: 'Ergonomic, gaming, mesh',           group: 'Everyday',  color: '#94A3B8' },
+  { id: 'pc-case',         label: 'PC Case',         emoji: '🗃️', description: 'Mid tower, ITX, airflow, glass',   group: 'PC',        color: '#6366F1' },
+  { id: 'psu',             label: 'Power Supply',    emoji: '⚡', description: 'Modular, 80 Plus Gold/Platinum',     group: 'PC',        color: '#6366F1' },
+  { id: 'ram',             label: 'RAM',             emoji: '🧩', description: 'DDR5, DDR4, gaming kits',           group: 'PC',        color: '#6366F1' },
   { id: 'running-shoes',   label: 'Running Shoes',   emoji: '👟', description: 'Road, trail, everyday',             group: 'Sports',    color: '#10B981' },
   { id: 'smartphone',      label: 'Smartphone',      emoji: '📱', description: 'Android, iPhone, flagship',         group: 'Mobile',    color: '#F59E0B' },
   { id: 'smartwatch',      label: 'Smartwatch',      emoji: '⌚', description: 'Fitness trackers, smart displays',  group: 'Mobile',    color: '#F59E0B' },
   { id: 'speakers',        label: 'Speakers',        emoji: '🔊', description: 'Bluetooth, bookshelf, soundbars',   group: 'Audio',     color: '#06B6D4' },
+  { id: 'ssd',             label: 'SSD / Storage',   emoji: '💿', description: 'NVMe PCIe 4/5, SATA, M.2',         group: 'PC',        color: '#6366F1' },
   { id: 'tablet',          label: 'Tablet',          emoji: '📋', description: 'iPad, Android, drawing tablets',    group: 'Mobile',    color: '#F59E0B' },
   { id: 'tripod',          label: 'Tripod',          emoji: '📷', description: 'Travel, studio, video',             group: 'Camera',    color: '#A78BFA' },
   { id: 'tv',              label: 'TV',              emoji: '📺', description: '4K, OLED, QLED, smart TVs',        group: 'Everyday',  color: '#94A3B8' },

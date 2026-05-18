@@ -8,6 +8,13 @@ const LABELS = {
   speakers: 'Speakers', tablet: 'Tablet', tv: 'TV', bike: 'Bike',
   tripod: 'Tripod', 'camera-flash': 'Camera Flash', 'camera-storage': 'Camera Storage',
   'field-monitor': 'Field Monitor', microphone: 'Microphone', 'camera-filter': 'Camera Filter',
+  'jewelry-rings': 'Rings', 'jewelry-necklace': 'Necklaces', 'jewelry-earrings': 'Earrings',
+  'jewelry-bracelet': 'Bracelets', 'jewelry-watch': 'Fine Watches', 'jewelry-brooch': 'Brooches', 'jewelry-anklet': 'Anklets',
+  cpu: 'CPU', motherboard: 'Motherboard', ram: 'RAM', ssd: 'SSD / Storage',
+  psu: 'Power Supply', 'pc-case': 'PC Case', 'cpu-cooler': 'CPU Cooler',
+  'headphones-over-ear': 'Over-ear Headphones', 'headphones-tws': 'True Wireless Earbuds',
+  'headphones-in-ear': 'In-ear / IEM', 'headphones-on-ear': 'On-ear Headphones',
+  'headphones-gaming': 'Gaming Headset', 'air-fryer': 'Air Fryer',
 };
 
 function getCurrencySymbol(code) {

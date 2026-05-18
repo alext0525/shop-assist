@@ -1,37 +1,59 @@
 import { useState } from 'react';
 
-const JEWELRY_SUBCATEGORIES = [
-  { id: 'jewelry-rings',    label: 'Rings',        emoji: '💍', description: 'Engagement, wedding, fashion, signet', color: '#F472B6' },
-  { id: 'jewelry-necklace', label: 'Necklaces',    emoji: '📿', description: 'Chains, pendants, chokers',            color: '#F472B6' },
-  { id: 'jewelry-earrings', label: 'Earrings',     emoji: '✨', description: 'Studs, hoops, drop & dangle',          color: '#F472B6' },
-  { id: 'jewelry-bracelet', label: 'Bracelets',    emoji: '💛', description: 'Bangles, cuffs, tennis, charm',        color: '#F59E0B' },
-  { id: 'jewelry-watch',    label: 'Fine Watches', emoji: '🕰️', description: 'Luxury, automatic, dress watches',    color: '#94A3B8' },
-  { id: 'jewelry-brooch',   label: 'Brooches',     emoji: '🌸', description: 'Fashion & vintage decorative pins',    color: '#F472B6' },
-  { id: 'jewelry-anklet',   label: 'Anklets',      emoji: '🌊', description: 'Gold, silver, beach jewelry',          color: '#06B6D4' },
-];
+const CONFIG = {
+  jewelry: {
+    emoji: '💍',
+    glow: 'rgba(244,114,182,.4)',
+    title: 'What type of jewellery?',
+    subtitle: "We'll ask about brands, quality, and community reputation.",
+    items: [
+      { id: 'jewelry-rings',    label: 'Rings',        emoji: '💍', description: 'Engagement, wedding, fashion, signet', color: '#F472B6' },
+      { id: 'jewelry-necklace', label: 'Necklaces',    emoji: '📿', description: 'Chains, pendants, chokers',            color: '#F472B6' },
+      { id: 'jewelry-earrings', label: 'Earrings',     emoji: '✨', description: 'Studs, hoops, drop & dangle',          color: '#F472B6' },
+      { id: 'jewelry-bracelet', label: 'Bracelets',    emoji: '💛', description: 'Bangles, cuffs, tennis, charm',        color: '#F59E0B' },
+      { id: 'jewelry-watch',    label: 'Fine Watches', emoji: '🕰️', description: 'Luxury, automatic, dress watches',    color: '#94A3B8' },
+      { id: 'jewelry-brooch',   label: 'Brooches',     emoji: '🌸', description: 'Fashion & vintage decorative pins',    color: '#F472B6' },
+      { id: 'jewelry-anklet',   label: 'Anklets',      emoji: '🌊', description: 'Gold, silver, beach jewelry',          color: '#06B6D4' },
+    ],
+  },
+  headphones: {
+    emoji: '🎧',
+    glow: 'rgba(99,102,241,.4)',
+    title: 'What type of headphones?',
+    subtitle: 'Pick the form factor that suits your use.',
+    items: [
+      { id: 'headphones-over-ear', label: 'Over-ear',       emoji: '🎧', description: 'Closed & open-back, ANC, studio',        color: '#6366F1' },
+      { id: 'headphones-tws',      label: 'True Wireless',  emoji: '🎵', description: 'AirPods, Galaxy Buds, wireless earbuds',  color: '#8B5CF6' },
+      { id: 'headphones-in-ear',   label: 'In-ear / IEM',   emoji: '🎶', description: 'Wired earphones, audiophile IEMs',        color: '#A78BFA' },
+      { id: 'headphones-on-ear',   label: 'On-ear',         emoji: '🎼', description: 'Portable, foldable, supra-aural',         color: '#06B6D4' },
+      { id: 'headphones-gaming',   label: 'Gaming Headset', emoji: '🕹️', description: 'PC, PS5, Xbox, surround sound',          color: '#10B981' },
+    ],
+  },
+};
 
 function hexToRgb(hex) {
   const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
   return `${r},${g},${b}`;
 }
 
-export default function SubcategorySelector({ onSelect, onBack }) {
+export default function SubcategorySelector({ category, onSelect, onBack }) {
   const [hovered, setHovered] = useState(null);
+  const conf = CONFIG[category];
+
+  if (!conf) return null;
 
   return (
     <div className="w-full max-w-xl mx-auto mt-12 flex flex-col items-center gap-8 px-4 anim-fadeup">
       <div className="text-center">
-        <div className="text-5xl mb-4" style={{ filter: 'drop-shadow(0 0 20px rgba(244,114,182,.4))' }}>💍</div>
+        <div className="text-5xl mb-4" style={{ filter: `drop-shadow(0 0 20px ${conf.glow})` }}>{conf.emoji}</div>
         <h1 className="text-3xl font-extrabold tracking-tight mb-2" style={{ color: 'var(--text)' }}>
-          What type of jewellery?
+          {conf.title}
         </h1>
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          We'll ask about brands, quality, and community reputation.
-        </p>
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{conf.subtitle}</p>
       </div>
 
       <div className="w-full grid grid-cols-2 gap-3">
-        {JEWELRY_SUBCATEGORIES.map((sub, idx) => {
+        {conf.items.map((sub, idx) => {
           const isHov = hovered === sub.id;
           const rgb = hexToRgb(sub.color);
           return (
