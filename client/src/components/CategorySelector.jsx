@@ -180,23 +180,67 @@ export default function CategorySelector({ onSelect }) {
         {/* Results — appear smoothly below, bar stays put */}
         <div className="w-full max-w-2xl mt-8" style={{ minHeight: 0 }}>
           {hasQuery && filtered.length === 0 && (
-            <div className="text-center py-12 anim-fadein">
-              <p className="text-4xl mb-3">🔍</p>
-              <p className="font-semibold mb-1" style={{ color: 'var(--text)' }}>No matches for "{search}"</p>
-              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Try a different term or browse the sidebar</p>
+            <div className="flex flex-col items-center gap-5 py-8 anim-fadein">
+              <div className="text-center">
+                <p className="text-4xl mb-3">🔍</p>
+                <p className="font-semibold mb-1" style={{ color: 'var(--text)' }}>No category matches for "{search}"</p>
+                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>We can still find the best one for you</p>
+              </div>
+              <CustomSearchButton query={query} onSelect={onSelect} large />
             </div>
           )}
 
           {hasQuery && filtered.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {filtered.map((cat, idx) => (
-                <ResultCard key={cat.id} cat={cat} idx={idx} onSelect={onSelect} />
-              ))}
+            <div className="flex flex-col gap-5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {filtered.map((cat, idx) => (
+                  <ResultCard key={cat.id} cat={cat} idx={idx} onSelect={onSelect} />
+                ))}
+              </div>
+              <div className="flex justify-center">
+                <CustomSearchButton query={query} onSelect={onSelect} />
+              </div>
             </div>
           )}
         </div>
       </div>
     </div>
+  );
+}
+
+function CustomSearchButton({ query, onSelect, large = false }) {
+  const [hovered, setHovered] = useState(false);
+  const label = query.trim();
+  return (
+    <button
+      onClick={() => onSelect(label)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="flex items-center gap-3 rounded-2xl text-left transition-all duration-200"
+      style={{
+        padding: large ? '16px 24px' : '12px 20px',
+        background: hovered ? 'rgba(99,102,241,.12)' : 'var(--surface)',
+        border: `1.5px solid ${hovered ? 'var(--accent)' : 'var(--border)'}`,
+        boxShadow: hovered ? 'var(--glow-sm)' : 'var(--shadow)',
+        transform: hovered ? 'translateY(-2px)' : 'none',
+      }}
+    >
+      <div className="flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0"
+        style={{ background: 'var(--accent-light)', border: '1px solid rgba(99,102,241,.25)', boxShadow: hovered ? 'var(--glow-sm)' : 'none' }}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div>
+        <div className="font-bold" style={{ fontSize: large ? 15 : 13, color: 'var(--text)' }}>
+          Search for "<span style={{ color: 'var(--accent)' }}>{label}</span>"
+        </div>
+        <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
+          AI will ask you questions and find the best options
+        </div>
+      </div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ color: 'var(--accent)', flexShrink: 0, marginLeft: 4 }}>
+        <path d="m9 18 6-6-6-6"/>
+      </svg>
+    </button>
   );
 }
 

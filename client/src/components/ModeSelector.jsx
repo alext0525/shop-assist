@@ -55,9 +55,13 @@ const MODES = [
   },
 ];
 
+function toTitleCase(str) {
+  return str.replace(/\b\w/g, c => c.toUpperCase());
+}
+
 export default function ModeSelector({ category, onSelect, onBack }) {
   const [hovered, setHovered] = useState(null);
-  const label = LABELS[category] || category;
+  const label = LABELS[category] || toTitleCase(category);
 
   return (
     <div className="w-full max-w-2xl mx-auto mt-12 flex flex-col items-center gap-8 px-4 anim-fadeup">

@@ -106,7 +106,7 @@ export default function ProductResults({ products, setProducts, marketSummary, c
       <div className="flex items-center justify-between gap-4 anim-fadeup">
         <div>
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold mb-2" style={{ background: 'var(--accent-light)', color: 'var(--accent-text)' }}>
-            {mode === 'vague' ? '⚡ Quick Match' : '🎯 Deep Dive'} — {LABELS[category] || category}
+            {mode === 'vague' ? '⚡ Quick Match' : '🎯 Deep Dive'} — {LABELS[category] || category.replace(/\b\w/g, c => c.toUpperCase())}
             {region && ` · ${region.flag} ${region.country}`}
           </span>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--text)' }}>

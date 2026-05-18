@@ -17,6 +17,10 @@ const LABELS = {
   'headphones-gaming': 'Gaming Headset', 'air-fryer': 'Air Fryer',
 };
 
+function toTitleCase(str) {
+  return str.replace(/\b\w/g, c => c.toUpperCase());
+}
+
 function getCurrencySymbol(code) {
   const map = { USD: '$', EUR: '€', GBP: '£', PLN: 'zł', CHF: 'CHF ', SEK: 'kr', NOK: 'kr', DKK: 'kr', AUD: 'A$', CAD: 'C$', JPY: '¥', SGD: 'S$' };
   return map[code] || (code + ' ');
@@ -123,7 +127,7 @@ export default function QuestionFlow({ category, mode, region, onComplete, onBac
               }
             </div>
             <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent)' }}>
-              {mode === 'vague' ? 'Quick Match' : 'Deep Dive'} · {LABELS[category] || category}
+              {mode === 'vague' ? 'Quick Match' : 'Deep Dive'} · {LABELS[category] || toTitleCase(category)}
             </span>
           </div>
           <span className="text-xs font-bold tabular-nums px-2 py-0.5 rounded-full" style={{ background: 'var(--surface-2)', color: 'var(--text-faint)', border: '1px solid var(--border)' }}>

@@ -139,13 +139,16 @@ function formatMoney(usd, rate, symbol) {
   return `${symbol}${v.toLocaleString()}`;
 }
 
-function getBudgetOptions(category, currencySymbol, currencyRate, bikeType = null) {
+function getBudgetOptions(category, currencySymbol, currencyRate, bikeType = null, customPoints = null) {
   let points;
-  if (category === 'bike' && bikeType && BIKE_TYPE_BUDGETS[bikeType]) {
+  if (customPoints) {
+    points = customPoints;
+  } else if (category === 'bike' && bikeType && BIKE_TYPE_BUDGETS[bikeType]) {
     points = BIKE_TYPE_BUDGETS[bikeType];
   } else {
-    points = BUDGET_RANGES[category] || [100, 300, 600];
+    points = BUDGET_RANGES[category] || null; // null = unknown category, handled by caller
   }
+  if (!points) points = [100, 300, 600];
   const opts = [];
   opts.push(`Under ${formatMoney(points[0], currencyRate, currencySymbol)}`);
   for (let i = 0; i < points.length - 1; i++) {
@@ -154,6 +157,20 @@ function getBudgetOptions(category, currencySymbol, currencyRate, bikeType = nul
   opts.push(`${formatMoney(points[points.length - 1], currencyRate, currencySymbol)}+`);
   opts.push('No preference');
   return opts;
+}
+
+// For custom/unknown categories: ask Haiku for sensible price breakpoints
+async function generateDynamicBudgetRanges(category) {
+  try {
+    const msg = await getClient().messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 100,
+      messages: [{ role: 'user', content: `Give 4 realistic price breakpoints in USD for buying "${category}". Return ONLY a JSON array of 4 ascending integers. Example: [50,200,500,1200]` }],
+    });
+    const pts = safeParseFirstArray(msg.content[0].text.trim());
+    if (Array.isArray(pts) && pts.length >= 2) return pts;
+  } catch {}
+  return [50, 150, 400, 1000]; // safe fallback
 }
 
 function extractBudget(previousQA) {
@@ -189,10 +206,14 @@ export async function generateNextQuestion({ category, mode, previousQA = [], cu
       const typeQA = previousQA.find(qa => qa.question.toLowerCase().includes('type of bike'));
       bikeType = bikeTypeFromAnswer(typeQA?.answer);
     }
+    // For custom/unknown categories, generate appropriate price ranges on the fly
+    const customPoints = !BUDGET_RANGES[category] && category !== 'bike'
+      ? await generateDynamicBudgetRanges(category)
+      : null;
     return {
       done: false,
       question: `What is your budget? (prices in ${currencyCode})`,
-      options: getBudgetOptions(category, currencySymbol, currencyRate, bikeType),
+      options: getBudgetOptions(category, currencySymbol, currencyRate, bikeType, customPoints),
     };
   }
 
