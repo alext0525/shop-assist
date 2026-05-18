@@ -22,7 +22,7 @@ const HINTS = {
   gpu:             'e.g. targeting 1440p 144fps, my case is quite small, I have a 650W PSU',
   cpu:             'e.g. mostly gaming, already have an AM5 motherboard, want the best single-core performance',
   'running-shoes': 'e.g. I overpronate, wide toe box, mostly road running 3× per week',
-  smartphone:      'e.g. camera quality is everything, I'm on iOS, prefer a compact size',
+  smartphone:      "e.g. camera quality is everything, I'm on iOS, prefer a compact size",
   headphones:      'e.g. for commuting, need strong ANC, currently have an iPhone',
   'headphones-tws':'e.g. for commuting, need strong ANC, currently have an iPhone',
   'headphones-over-ear': 'e.g. home listening, open-back preferred, I have a DAC/amp',
