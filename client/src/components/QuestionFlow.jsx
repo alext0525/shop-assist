@@ -26,7 +26,7 @@ function getCurrencySymbol(code) {
   return map[code] || (code + ' ');
 }
 
-export default function QuestionFlow({ category, mode, region, onComplete, onBack, error }) {
+export default function QuestionFlow({ category, mode, region, userDescription, onComplete, onBack, error }) {
   const [currentQ, setCurrentQ] = useState(null);
   const [selected, setSelected] = useState([]);   // multi-select for option questions
   const [textAnswer, setTextAnswer] = useState(''); // free-text (for text-only) or "add more" for option questions
@@ -54,6 +54,7 @@ export default function QuestionFlow({ category, mode, region, onComplete, onBac
         body: JSON.stringify({
           category, mode,
           previousQA: qa,
+          userDescription: userDescription || '',
           currencyCode: region?.currency || 'USD',
           currencySymbol: getCurrencySymbol(region?.currency),
           currencyRate: 1,

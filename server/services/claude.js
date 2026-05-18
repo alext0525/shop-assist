@@ -182,7 +182,7 @@ function extractBudget(previousQA) {
 
 // --- SINGLE-QUESTION GENERATION ---
 
-export async function generateNextQuestion({ category, mode, previousQA = [], currencyCode = 'USD', currencySymbol = '$', currencyRate = 1 }) {
+export async function generateNextQuestion({ category, mode, previousQA = [], currencyCode = 'USD', currencySymbol = '$', currencyRate = 1, userDescription = '' }) {
   const isVague = mode === 'vague';
   const maxQ = isVague ? 3 : 12;
   const qNum = previousQA.length + 1;
@@ -257,13 +257,18 @@ export async function generateNextQuestion({ category, mode, previousQA = [], cu
     'pc-case': `Topics (pick most relevant NOT yet covered): motherboard form factor support (ATX full-size / mATX Micro-ATX / Mini-ITX — ask first), case size class (full tower / mid tower — most common / small form factor SFF), GPU length clearance (mm — important for large cards like RTX 4090), airflow design (mesh front/top for max airflow / solid panel with glass for aesthetics), AIO radiator support (240/280/360mm — and position: top/front), included fan count, front panel I/O (USB-C, USB 3.0 count), PSU shroud, brand (Fractal Design Define 7/North/Torrent / Lian Li Lancool III/PC-O11 Dynamic / NZXT H7/H9 / Corsair 4000D Airflow / Phanteks Eclipse G500A / be quiet! Pure Base 500DX / Cooler Master HAF / Thermaltake View — offer as options), tool-less drive installation.`,
     'cpu-cooler': `Topics (pick most relevant NOT yet covered): cooler type (tower air cooler — quiet value / AIO liquid 240mm — popular / AIO 280mm / AIO 360mm — maximum cooling — ask first), CPU socket compatibility (LGA1851/LGA1700 Intel / AM5/AM4 AMD — must match), CPU TDP to handle (65W stock / 105W mid / 125W high-end / 170W+ flagship), case height clearance for air coolers (mm), radiator mounting location (top preferred / front / side), RGB, noise level at load, brand (Noctua NH-D15 G2/NH-U12A — best air / be quiet! Dark Rock Pro 5/Shadow Rock 3 / Deepcool AK620/AK500 / Arctic Liquid Freezer III 360 — best AIO value / Corsair iCUE H150i/H170i / NZXT Kraken Elite / Thermalright Peerless Assassin / EK Nucleus — offer as options).`,
     // Headphone subcategories
-    'headphones-over-ear': `Topics (pick most relevant NOT yet covered): open-back vs closed-back (open = wide soundstage for home use / closed = isolation for commute/recording), wired vs wireless, ANC noise cancellation quality (Sony WH vs Bose QC vs Apple AirPods Max), microphone for calls, codec (LDAC/aptX HD for hi-res wireless / AAC for iPhone), use environment (commute / home listening / studio monitoring / office), brand preference (Sony WH-1000XM5 / Bose QuietComfort Ultra / Apple AirPods Max / Sennheiser Momentum 4 / Beyerdynamic DT 700 Pro X / Audio-Technica ATH-M50x / Focal Elear / Audeze LCD — offer as options), driver type for hi-fi (dynamic / planar magnetic), impedance (32Ω wireless-friendly / 250Ω needs amp), comfort for extended wear.`,
+    'headphones-over-ear': `Topics (pick most relevant NOT yet covered): open-back vs closed-back (open = wide soundstage for home use / closed = isolation for commute/recording), wired vs wireless, ANC noise cancellation quality (Sony WH vs Bose QC vs Apple AirPods Max), microphone for calls, codec (LDAC/aptX HD for hi-res wireless / AAC for iPhone), use environment (commute / home listening / studio monitoring / office), ear pad material (protein leather durable-sealing / velour breathable-comfortable / genuine leather premium / memory foam padding — ask when comfort for long sessions matters), headband material (metal / plastic / leatherette), brand preference (Sony WH-1000XM5 / Bose QuietComfort Ultra / Apple AirPods Max / Sennheiser Momentum 4 / Beyerdynamic DT 700 Pro X / Audio-Technica ATH-M50x / Focal Elear / Audeze LCD — offer as options), driver type for hi-fi (dynamic / planar magnetic), impedance (32Ω wireless-friendly / 250Ω needs amp), weight and clamp force for extended wear.`,
     'headphones-tws': `Topics (pick most relevant NOT yet covered): ANC quality (active noise cancellation — key differentiator), transparency/passthrough mode, total battery life (buds alone / with case recharges), charging type (USB-C + wireless Qi), fit style (silicone ear tip seal / open-fit no seal / ear hook sport), call microphone quality, codec (LDAC Android hi-res / AAC Apple / aptX / SBC), spatial audio (Dolby Atmos / Apple Spatial), platform ecosystem (iPhone → AirPods Pro 2; Android → Sony/Samsung/Nothing), brand (Apple AirPods Pro 2 / Samsung Galaxy Buds3 Pro / Sony WF-1000XM5 / Jabra Elite 10 / Bose QuietComfort Ultra Earbuds / Nothing Ear (open) / Soundcore Liberty 4 Pro / Shokz OpenFit — offer as options), IP water resistance rating (IPX4/IPX5), in-ear vs open-fit preference.`,
     'headphones-in-ear': `Topics (pick most relevant NOT yet covered): driver type (single dynamic driver — warm natural / balanced armature BA — detailed analytical / planar magnetic — technical / hybrid multi-driver — versatile — ask first), tuning signature preference (V-shaped / neutral/reference / warm / bright), cable termination (3.5mm single-ended / 4.4mm balanced / 2.5mm balanced), cable connector type (2-pin 0.78mm / MMCX — allows cable upgrades), source device (phone / DAP / DAC-amp), brand (Moondrop Aria 2/Blessing 3 / 7Hz Salnotes Zero 2 / Shure SE215/SE846 / Etymotic ER2XR / ThieAudio Hype / Truthear Zero Red / Letshuoer S12 Pro / Campfire Audio Andromeda — offer as options), impedance and sensitivity (for pairing with source), use case (commute vs critical listening vs studio monitoring).`,
     'headphones-on-ear': `Topics (pick most relevant NOT yet covered): wired vs wireless, ANC or passive isolation, foldable/portable priority, use case (commute / casual / gym), brand (Marshall Major IV / Skullcandy Hesh / Jabra Move / JBL Club / Urbanears Plattan / Sony MDR-ZX770BN — offer as options), battery life wireless, sound signature (bass-heavy / balanced), call microphone, comfort of on-ear pad material.`,
-    'headphones-gaming': `Topics (pick most relevant NOT yet covered): platform (PC / PlayStation 5 / Xbox Series / Nintendo Switch / multi-platform — ask first, affects compatibility), connection (wired 3.5mm / USB / wireless 2.4GHz dongle — best latency / Bluetooth), virtual surround sound (Dolby Atmos / DTS Headphone:X / THX Spatial), microphone quality (detachable boom / retractable / built-in — ask), brand (SteelSeries Arctis Nova Pro / HyperX Cloud III / Astro A50 X / Corsair HS80 / Razer BlackShark V2 / Logitech G Pro X 2 / EPOS H6PRO / Turtle Beach Stealth — offer as options), sidetone (hear own voice), comfort for long sessions (weight, headband, ear pad material), official console certification (PlayStation licensed etc.).`,
+    'headphones-gaming': `Topics (pick most relevant NOT yet covered): platform (PC / PlayStation 5 / Xbox Series / Nintendo Switch / multi-platform — ask first, affects compatibility), connection (wired 3.5mm / USB / wireless 2.4GHz dongle — best latency / Bluetooth), virtual surround sound (Dolby Atmos / DTS Headphone:X / THX Spatial), microphone quality (detachable boom / retractable / built-in — ask), ear pad material (memory foam + leatherette sealing / velour breathable for marathon sessions / fabric — ask when comfort during long gaming sessions is a priority), brand (SteelSeries Arctis Nova Pro / HyperX Cloud III / Astro A50 X / Corsair HS80 / Razer BlackShark V2 / Logitech G Pro X 2 / EPOS H6PRO / Turtle Beach Stealth — offer as options), sidetone (hear own voice), official console certification (PlayStation licensed etc.).`,
     // Kitchen
     'air-fryer': `Topics (pick most relevant NOT yet covered): household size and capacity (1-2L compact / 3-4L 1-2 people / 5-6L family of 4 / 8L+ large family — ask first), form factor (basket/drawer style — most common / oven/tray style — more versatile / dual basket — two zones simultaneously), dual zone / dual basket (cook two different foods at once — important feature for families), wattage (1400-1700W budget / 1800-2400W faster cooking), cooking presets and smart features (dial control / digital display / app/WiFi control), ease of cleaning (dishwasher-safe basket/tray, non-stick coating quality), brand (Philips Series 3000 XXL / Ninja Dual Zone AF400 / Cosori TurboBlaze / Instant Vortex Plus / Tower Vortx / Tefal Easy Fry Genius / Meross smart — offer as options), additional functions (bake/roast/dehydrate/grill beyond air fry), noise level at high heat.`,
+    // Wearables & everyday — material is key
+    'running-shoes': `Topics (pick most relevant NOT yet covered): running surface (road / trail / track / treadmill — ask first), foot type & gait (neutral / overpronation / supination — shapes shoe choice), cushioning level (maximal plush / moderate versatile / minimal responsive / zero-drop barefoot), upper material (engineered mesh / knit / breathable woven / leather / synthetic — affects breathability and weight), midsole foam tech (standard EVA / Nike ZoomX or React / Adidas Lightstrike Pro or Boost / Brooks DNA Loft / ASICS FF Blast / HOKA ProFly — premium foams are a key differentiator), heel-to-toe drop (0-4mm minimal / 6-8mm mid / 10-12mm traditional), width (standard / wide / extra-wide), brand (Nike Pegasus/Vaporfly / Adidas Ultraboost/Adizero / Brooks Ghost/Glycerin / ASICS Gel-Nimbus/Kayano / New Balance Fresh Foam/FuelCell / Saucony Ride/Kinvara / HOKA Clifton/Bondi — offer as options), purpose (daily trainer / long run / race day / gym / casual), waterproofing (GTX / none).`,
+    smartwatch: `Topics (pick most relevant NOT yet covered): ecosystem/platform (Apple Watch / Samsung Galaxy Watch / Garmin / Fitbit / Polar / Suunto — ask first, must match phone), primary use (fitness tracking / health monitoring / outdoor GPS adventure / notifications / fashion), case size (40-42mm / 44-46mm / 49mm ultrasize), case material (aluminum standard / stainless steel premium / titanium lightweight-premium / polymer rugged — ask about material), band/strap material (silicone sport / leather / stainless metal bracelet / woven nylon / rubber sport — ask for comfort preference), health sensors (ECG / heart rate / SpO2 / sleep / body temp / fall detection), battery life (1-2 days flagship / 7-14 days endurance GPS), always-on display, independent GPS (vs phone-reliant), cellular/eSIM, water resistance rating, brand (Apple Watch Series 10/Ultra 2 / Samsung Galaxy Watch 7/Ultra / Garmin Fenix 8/Forerunner 965 / Fitbit Sense 2 / Polar Grit X2 / Suunto Race — offer as options).`,
+    backpack: `Topics (pick most relevant NOT yet covered): primary use (everyday carry/commute / travel / hiking/trekking / school / gym — ask first), capacity (10-20L daypack / 25-35L weekender / 40-60L travel/expedition), laptop compartment size (13"/15"/17"/none), outer material (recycled polyester budget / Cordura nylon durable / ballistic nylon premium / canvas casual / UHMWPE ultralight — ask about material and durability priority), weatherproofing (DWR water-resistant / IPX rating / roll-top waterproof), back system (simple padded foam / ventilated suspended mesh / framesheet / load-bearing suspension for hiking), brand (Osprey Daylite/Farpoint/Atmos / Peak Design Everyday / Nomatic / Thule Paramount / Fjällräven Kånken / Patagonia Black Hole / Cotopaxi Allpa / Db Essential — offer as options), organisation (number of pockets, key clip, water bottle holder), weight, gender-specific fit, colour/style.`,
+    'office-chair': `Topics (pick most relevant NOT yet covered): back support type (full mesh back / mesh lumbar + foam seat / fully upholstered / hybrid), seat and backrest material (breathable mesh — cooler / fabric woven / PU faux-leather — easy clean / genuine leather premium — ask about material and climate since mesh is cooler for long sessions), adjustability depth (seat height / 4D armrests / lumbar depth + height / seat depth / headrest / recline tension), lumbar support type (fixed / adjustable / dynamic / separate cushion), ergonomic certification (BIFMA / EN 1335 / BIFMA+), seat dimensions (width/depth for body size), weight capacity, brand tier (Herman Miller Aeron/Embody — premium / Steelcase Leap/Gesture — premium / Branch Ergonomic / Flexispot Hinomi — mid / Secretlab Titan / DXRacer — gaming — offer as options), armrest style (T-bar / 3D / 4D), budget tier (task chair vs gaming chair vs executive), colour.`,
     'jewelry-rings':    JEWELRY_TOPICS('ring', 'ring size, stone shape (round/oval/cushion/emerald cut), band width, stackable or solo'),
     'jewelry-necklace': JEWELRY_TOPICS('necklace', 'chain length (inches), pendant size, layering style, clasp type'),
     'jewelry-earrings': JEWELRY_TOPICS('earrings', 'earring back type (push-back/screw-back/huggie), size, for pierced or clip-on'),
@@ -283,12 +288,16 @@ function JEWELRY_TOPICS(type, extras) {
     ? `This is Quick Match — ask a BROAD lifestyle question. One preference at a time.`
     : `This is Deep Dive — ask a SPECIFIC TECHNICAL question about ONE exact spec. Use precise options (e.g. exact GB of RAM, exact screen size in inches). Do not bundle specs together.`;
 
+  const userDescNote = userDescription
+    ? `User's initial brief: "${userDescription}"\nFactor this in — skip asking about anything already clearly stated here.\n\n`
+    : '';
+
   const prompt = `You are a shopping assistant. Generate the NEXT single question for buying a ${category}.
 
 ${modeNote}
 This is question ${qNum} of ${maxQ}.
 
-${topicGuide}
+${userDescNote}${topicGuide}
 
 Previous Q&A so far:
 ${context || 'None yet.'}
@@ -334,9 +343,10 @@ OR for free-text:
 
 // --- SEARCH QUERIES ---
 
-export async function generateSearchQueries({ category, mode, previousQA, country, stores }) {
+export async function generateSearchQueries({ category, mode, previousQA, country, stores, userDescription = '' }) {
   const isVague = mode === 'vague';
-  const context = previousQA.map(qa => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
+  const descPrefix = userDescription ? `Initial brief: ${userDescription}\n\n` : '';
+  const context = descPrefix + previousQA.map(qa => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
   const budget = extractBudget(previousQA);
 
   // Build region-specific retailer targets
@@ -375,7 +385,7 @@ Return ONLY a JSON array of strings.`;
 
 // --- RANK AND FORMAT ---
 
-export async function rankAndFormatResults({ category, mode, previousQA, rawResults, images = [], feedback = null, country, stores }) {
+export async function rankAndFormatResults({ category, mode, previousQA, rawResults, images = [], feedback = null, country, stores, userDescription = '' }) {
   const isVague = mode === 'vague';
   const targetCount = isVague ? 10 : 7;
   const context = previousQA.map(qa => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
@@ -388,6 +398,7 @@ export async function rankAndFormatResults({ category, mode, previousQA, rawResu
     ? `REGION: User is in ${country}. Strongly prefer products from local retailers (${stores || country}). Exclude US-only deals.`
     : '';
   const feedbackNote = feedback ? `User feedback: "${feedback}" — prioritise this.` : '';
+  const descNote = userDescription ? `User's initial brief: "${userDescription}"` : '';
 
   const isJewelry = category.startsWith('jewelry-');
   const jewelryExtra = isJewelry
@@ -403,6 +414,7 @@ export async function rankAndFormatResults({ category, mode, previousQA, rawResu
 
   const prompt = `You are a shopping expert for ${category}.
 
+${descNote}
 User: ${context}
 ${budgetRule} ${regionRule} ${feedbackNote}
 
@@ -497,7 +509,7 @@ function safeParseArray(text) {
 // --- STREAMING RANK AND FORMAT ---
 // Same prompt as rankAndFormatResults but streams each product as soon as Claude writes it
 
-export async function rankAndFormatResultsStreaming({ category, mode, previousQA, rawResults, images = [], feedback = null, country, stores, onProduct }) {
+export async function rankAndFormatResultsStreaming({ category, mode, previousQA, rawResults, images = [], feedback = null, country, stores, userDescription = '', onProduct }) {
   const isVague = mode === 'vague';
   const targetCount = isVague ? 10 : 7;
   const context = previousQA.map(qa => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
@@ -508,6 +520,7 @@ export async function rankAndFormatResultsStreaming({ category, mode, previousQA
   const regionRule = country && country !== 'United States'
     ? `REGION: User is in ${country}. Prefer local retailers (${stores || country}).` : '';
   const feedbackNote = feedback ? `User feedback: "${feedback}" — prioritise this.` : '';
+  const descNote = userDescription ? `User's initial brief: "${userDescription}"` : '';
   const isJewelry = category.startsWith('jewelry-');
   const jewelryExtra = isJewelry
     ? `- communityNote MUST reference brand reputation from jewellery communities if found.` : '';
@@ -517,6 +530,7 @@ export async function rankAndFormatResultsStreaming({ category, mode, previousQA
   }));
 
   const prompt = `You are a shopping expert for ${category}.
+${descNote}
 User: ${context}
 ${budgetRule} ${regionRule} ${feedbackNote}
 Search results: ${JSON.stringify(trimmedResults)}

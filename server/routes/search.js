@@ -14,7 +14,7 @@ function sse(res, event, data) {
 
 // Streaming endpoint — products arrive one by one
 router.post('/products/stream', async (req, res) => {
-  const { category, mode, previousQA, country, countryCode, stores } = req.body;
+  const { category, mode, previousQA, country, countryCode, stores, userDescription } = req.body;
 
   if (!category || !mode || !previousQA) {
     return res.status(400).json({ error: 'category, mode, and previousQA are required' });
@@ -35,7 +35,7 @@ router.post('/products/stream', async (req, res) => {
 
     // Generate queries + market summary in parallel
     const [queries, marketSummary] = await Promise.all([
-      generateSearchQueries({ category, mode, previousQA, country, stores }),
+      generateSearchQueries({ category, mode, previousQA, country, stores, userDescription }),
       generateMarketSummary({ category, previousQA, country }),
     ]);
 
@@ -52,7 +52,7 @@ router.post('/products/stream', async (req, res) => {
     sse(res, 'status', { label: 'Ranking results for you…' });
 
     await rankAndFormatResultsStreaming({
-      category, mode, previousQA, rawResults, images, country, stores,
+      category, mode, previousQA, rawResults, images, country, stores, userDescription,
       onProduct: (product) => sse(res, 'product', product),
     });
 

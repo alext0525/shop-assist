@@ -4,6 +4,7 @@ import { useCurrency } from './hooks/useCurrency';
 import CategorySelector from './components/CategorySelector';
 import SubcategorySelector from './components/SubcategorySelector';
 import ModeSelector from './components/ModeSelector';
+import PreludeInput from './components/PreludeInput';
 import QuestionFlow from './components/QuestionFlow';
 import ProductResults from './components/ProductResults';
 import Header from './components/Header';
@@ -12,6 +13,7 @@ const STAGES = {
   CATEGORY: 'category',
   SUBCATEGORY: 'subcategory',
   MODE: 'mode',
+  PRELUDE: 'prelude',
   QUESTIONS: 'questions',
   RESULTS: 'results',
 };
@@ -28,6 +30,7 @@ export default function App() {
   const [error, setError] = useState(null);
   const [streaming, setStreaming] = useState(false);
   const [searchStatus, setSearchStatus] = useState('');
+  const [userDescription, setUserDescription] = useState('');
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved ? saved === 'dark' : true;
@@ -57,7 +60,7 @@ export default function App() {
     try {
       await streamSearch({
         url: '/api/search/products/stream',
-        body: { category, mode, previousQA: qa, country: region.country, countryCode: region.code, stores: region.stores },
+        body: { category, mode, previousQA: qa, userDescription, country: region.country, countryCode: region.code, stores: region.stores },
         onStatus:  ({ label }) => setSearchStatus(label),
         onSummary: ({ marketSummary }) => setMarketSummary(marketSummary),
         onProduct: (product) => setProducts(prev => [...prev, product]),
@@ -80,6 +83,7 @@ export default function App() {
     setError(null);
     setStreaming(false);
     setSearchStatus('');
+    setUserDescription('');
   }
 
   return (
@@ -106,8 +110,16 @@ export default function App() {
         {stage === STAGES.MODE && (
           <ModeSelector
             category={category}
-            onSelect={m => { setMode(m); setStage(STAGES.QUESTIONS); }}
+            onSelect={m => { setMode(m); setStage(STAGES.PRELUDE); }}
             onBack={() => setStage(HAS_SUBCATEGORY.has(category?.split('-')[0]) ? STAGES.SUBCATEGORY : STAGES.CATEGORY)}
+          />
+        )}
+        {stage === STAGES.PRELUDE && (
+          <PreludeInput
+            category={category}
+            mode={mode}
+            onContinue={(desc) => { setUserDescription(desc); setStage(STAGES.QUESTIONS); }}
+            onBack={() => setStage(STAGES.MODE)}
           />
         )}
         {stage === STAGES.QUESTIONS && (
@@ -115,8 +127,9 @@ export default function App() {
             category={category}
             mode={mode}
             region={region}
+            userDescription={userDescription}
             onComplete={handleQuestionsComplete}
-            onBack={() => setStage(STAGES.MODE)}
+            onBack={() => setStage(STAGES.PRELUDE)}
             error={error}
           />
         )}
