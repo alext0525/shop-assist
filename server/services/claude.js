@@ -253,8 +253,7 @@ OR for free-text:
   });
 
   const text = msg.content[0].text.trim();
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
+  const parsed = safeParseObject(text);
 
   // Ensure "No preference" is always present for option questions
   if (parsed.options && !parsed.options.some(o => o.toLowerCase().includes('preference'))) {
@@ -285,10 +284,11 @@ export async function generateSearchQueries({ category, mode, previousQA, countr
 User needs:
 ${context}
 
-Generate ${isVague ? 4 : 6} search queries. Mix:
+Generate ${isVague ? 5 : 7} search queries. Mix:
 1. Product discovery: "best [specific type] [year]" review/roundup
 2. Shopping: "[product] buy ${country || 'online'}"${budget ? ` under ${budget}` : ''}
 3. ${isJewelry ? 'Brand reputation: "[brand] jewelry review quality reddit"' : `Price: "[product] price ${country || ''} ${budget || ''}"` }
+4. Manufacturer/official pages (for product images): "[brand if inferred from preferences] [product] official" or "[specific model name] specifications" — these pages have high-quality product photos
 
 ${regionRetailers}
 ${jewelryNote}
@@ -301,8 +301,7 @@ Return ONLY a JSON array of strings.`;
   });
 
   const text = msg.content[0].text.trim();
-  const jsonMatch = text.match(/\[[\s\S]*\]/);
-  return JSON.parse(jsonMatch ? jsonMatch[0] : text);
+  return safeParseFirstArray(text);
 }
 
 // --- RANK AND FORMAT ---
@@ -341,17 +340,18 @@ ${budgetRule} ${regionRule} ${feedbackNote}
 Search results:
 ${JSON.stringify(trimmedResults)}
 
-Images: ${images.slice(0, 8).join('\n')}
+Images: ${images.slice(0, 20).join('\n')}
 
 Return ${targetCount} products as JSON array. Rules:
 - Group same model variants (different configs) into ONE entry with a variants array
-- URL: retailer product pages only (not review sites)
+- url: MUST be a direct retailer product page (amazon, bol.com, bestbuy, etc.) OR the manufacturer's own product page. NEVER use review/editorial/comparison sites (rtings.com, notebookcheck.net, tomsguide.com, techradar.com, gsmarena.com, pcmag.com, theverge.com, cnet.com, anandtech.com, tomshardware.com, digitaltrends.com, trustedreviews.com, soundguys.com, etc.). If no suitable URL found in results, construct a plausible manufacturer URL (e.g. "https://www.logitech.com/products/mice/mx-master-3s").
+- brandUrl: the manufacturer's own product page or homepage as a fallback (e.g. "https://www.apple.com/shop/buy-iphone/iphone-15-pro" or "https://logitech.com"). Always include this field.
 - Price: only if explicitly in results, else "Check price"
-- imageUrl: best match from images or null
+- imageUrl: from the Images list, prefer product photos from manufacturer CDNs, Amazon image CDNs (m.media-amazon.com, images-na.ssl-images-amazon.com), or high-resolution press images. Avoid small editorial thumbnails. null if no good match.
 - Extract community sentiment from results
 ${jewelryExtra}
 
-[{"name":"...","variants":[{"config":"...","price":"...","url":"..."}],"url":"...","imageUrl":null,"reason":"2 sentences.","pros":["..."],"cons":["..."],"communityNote":"...","specs":["..."],"score":95}]
+[{"name":"...","variants":[{"config":"...","price":"...","url":"..."}],"url":"https://amazon.com/dp/...","brandUrl":"https://logitech.com/products/mice/mx-master-3s","imageUrl":null,"reason":"2 sentences.","pros":["..."],"cons":["..."],"communityNote":"...","specs":["..."],"score":95}]
 No markdown.`;
 
   const msg = await getClient().messages.create({
@@ -362,6 +362,43 @@ No markdown.`;
 
   const text = msg.content[0].text.trim();
   return safeParseArray(text);
+}
+
+// Robust single-object parser: finds the first valid JSON object using bracket depth
+// (avoids greedy-regex failures when Claude adds preamble text containing braces)
+function safeParseObject(text) {
+  let depth = 0, start = -1;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === '{') {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (c === '}') {
+      depth--;
+      if (depth === 0 && start !== -1) {
+        try { return JSON.parse(text.slice(start, i + 1)); } catch { start = -1; }
+      }
+    }
+  }
+  throw new Error('Could not parse JSON response from AI');
+}
+
+// Robust first-array parser: same approach for top-level arrays
+function safeParseFirstArray(text) {
+  let depth = 0, start = -1;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === '[') {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (c === ']') {
+      depth--;
+      if (depth === 0 && start !== -1) {
+        try { return JSON.parse(text.slice(start, i + 1)); } catch { start = -1; }
+      }
+    }
+  }
+  throw new Error('Could not parse array response from AI');
 }
 
 // Gracefully handle truncated JSON — extract all complete product objects
@@ -414,17 +451,18 @@ export async function rankAndFormatResultsStreaming({ category, mode, previousQA
 User: ${context}
 ${budgetRule} ${regionRule} ${feedbackNote}
 Search results: ${JSON.stringify(trimmedResults)}
-Images: ${images.slice(0, 8).join('\n')}
+Images: ${images.slice(0, 20).join('\n')}
 
 Return ${targetCount} products as a JSON array. Each product on its own object. Rules:
 - Group same model variants into ONE entry with a variants array
-- URL: retailer product pages only
+- url: MUST be a direct retailer product page (amazon, bol.com, bestbuy, etc.) OR manufacturer's own product page. NEVER review/editorial/comparison sites (rtings.com, notebookcheck.net, tomsguide.com, techradar.com, gsmarena.com, pcmag.com, theverge.com, cnet.com, anandtech.com, tomshardware.com, digitaltrends.com, trustedreviews.com, soundguys.com, etc.). If no suitable URL in results, construct a plausible manufacturer URL (e.g. "https://www.logitech.com/products/mice/mx-master-3s").
+- brandUrl: manufacturer's own product page or homepage as fallback (e.g. "https://www.samsung.com/galaxy-s24" or "https://samsung.com"). Always include this field.
 - Price: only if explicitly in results, else "Check price"
-- imageUrl: best match from images or null
+- imageUrl: from the Images list, prefer product photos from manufacturer CDNs, Amazon image CDNs (m.media-amazon.com, images-na.ssl-images-amazon.com), or high-resolution press images. Avoid small editorial thumbnails. null if no good match.
 - Extract community sentiment from results
 ${jewelryExtra}
 
-[{"name":"...","variants":[{"config":"...","price":"...","url":"..."}],"url":"...","imageUrl":null,"reason":"2 sentences.","pros":["..."],"cons":["..."],"communityNote":"...","specs":["..."],"score":95}]
+[{"name":"...","variants":[{"config":"...","price":"...","url":"..."}],"url":"https://amazon.com/dp/...","brandUrl":"https://logitech.com/products/mice/mx-master-3s","imageUrl":null,"reason":"2 sentences.","pros":["..."],"cons":["..."],"communityNote":"...","specs":["..."],"score":95}]
 No markdown.`;
 
   const stream = getClient().messages.stream({
@@ -519,6 +557,5 @@ Return ONLY valid JSON:
   });
 
   const text = msg.content[0].text.trim();
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  return JSON.parse(jsonMatch ? jsonMatch[0] : text);
+  return safeParseObject(text);
 }

@@ -1,6 +1,6 @@
 // Reads an SSE stream from a POST endpoint.
 // Fires callbacks as events arrive so the UI can update incrementally.
-export async function streamSearch({ url, body, onStatus, onSummary, onProduct, onDone, onError }) {
+export async function streamSearch({ url, body, onStatus, onSummary, onMessage, onProduct, onDone, onError }) {
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -45,6 +45,7 @@ export async function streamSearch({ url, body, onStatus, onSummary, onProduct, 
 
       if (eventType === 'status')  onStatus?.(eventData);
       if (eventType === 'summary') onSummary?.(eventData);
+      if (eventType === 'message') onMessage?.(eventData);
       if (eventType === 'product') onProduct?.(eventData);
       if (eventType === 'done')    onDone?.(eventData);
       if (eventType === 'error')   onError?.(eventData);

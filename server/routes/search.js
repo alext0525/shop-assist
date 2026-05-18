@@ -2,6 +2,7 @@ import express from 'express';
 import { generateSearchQueries, rankAndFormatResults, rankAndFormatResultsStreaming, generateMarketSummary, refineWithFeedback } from '../services/claude.js';
 import { searchMultiple } from '../services/tavily.js';
 
+
 const router = express.Router();
 
 // Helper: write an SSE event
@@ -59,6 +60,53 @@ router.post('/products/stream', async (req, res) => {
   } catch (err) {
     console.error('[stream error]', err);
     sse(res, 'error', { message: err.message || 'Search failed' });
+  } finally {
+    clearInterval(keepAlive);
+    res.end();
+  }
+});
+
+// Streaming refine — AI message arrives first, then products trickle in
+router.post('/refine/stream', async (req, res) => {
+  const { category, mode, originalQA, currentProducts, feedback, country, stores } = req.body;
+  if (!category || !feedback) {
+    return res.status(400).json({ error: 'category and feedback are required' });
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  const keepAlive = setInterval(() => {
+    if (!res.writableEnded) res.write(': ping\n\n');
+  }, 20000);
+
+  try {
+    sse(res, 'status', { label: 'Thinking about your feedback…' });
+
+    const { message, queries } = await refineWithFeedback({ category, originalQA, currentProducts, feedback });
+    sse(res, 'message', { message });
+    sse(res, 'status', { label: 'Searching for better matches…' });
+
+    const { results: rawResults, images } = await searchMultiple(queries);
+
+    if (rawResults.length === 0) {
+      sse(res, 'done', { noResults: true });
+      return;
+    }
+
+    sse(res, 'status', { label: 'Ranking results for you…' });
+
+    await rankAndFormatResultsStreaming({
+      category, mode, previousQA: originalQA, rawResults, images, feedback, country, stores,
+      onProduct: (product) => sse(res, 'product', product),
+    });
+
+    sse(res, 'done', {});
+  } catch (err) {
+    console.error('[refine/stream error]', err);
+    sse(res, 'error', { message: err.message || 'Refinement failed' });
   } finally {
     clearInterval(keepAlive);
     res.end();

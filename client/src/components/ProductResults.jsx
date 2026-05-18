@@ -8,6 +8,11 @@ const LABELS = {
   laptop: 'Laptop', smartphone: 'Smartphone', 'office-chair': 'Office Chair',
   smartwatch: 'Smartwatch', 'running-shoes': 'Running Shoes',
   speakers: 'Speakers', tablet: 'Tablet', tv: 'TV', bike: 'Bike',
+  tripod: 'Tripod', 'camera-flash': 'Camera Flash', 'camera-storage': 'Camera Storage',
+  'field-monitor': 'Field Monitor', microphone: 'Microphone', 'camera-filter': 'Camera Filter',
+  'jewelry-rings': 'Rings', 'jewelry-necklace': 'Necklaces', 'jewelry-earrings': 'Earrings',
+  'jewelry-bracelet': 'Bracelets', 'jewelry-watch': 'Watches', 'jewelry-brooch': 'Brooches',
+  'jewelry-anklet': 'Anklets',
 };
 
 const RANK_STYLE = {
@@ -16,8 +21,25 @@ const RANK_STYLE = {
   3: { label: '🥉', bg: 'rgba(234,88,12,0.12)', color: '#7c2d12', border: 'rgba(234,88,12,0.4)' },
 };
 
+const REVIEW_DOMAINS = new Set([
+  'rtings.com', 'notebookcheck.net', 'notebookcheck.com', 'tomsguide.com',
+  'techradar.com', 'gsmarena.com', 'pcmag.com', 'theverge.com', '9to5mac.com',
+  'engadget.com', 'cnet.com', 'wired.com', 'tomshardware.com', 'anandtech.com',
+  'digitaltrends.com', 'trustedreviews.com', 'expertreviews.co.uk',
+  'soundguys.com', 'cameralabs.com', 'dpreview.com', 'phonearena.com',
+]);
+
 function getDomain(url) {
   try { return new URL(url).hostname.replace('www.', ''); } catch { return null; }
+}
+
+function resolveUrl(url, brandUrl) {
+  if (!url) return brandUrl || '#';
+  try {
+    const domain = new URL(url).hostname.replace(/^www\./, '');
+    if (REVIEW_DOMAINS.has(domain)) return brandUrl || url;
+  } catch {}
+  return url;
 }
 
 function EmojiPlaceholder({ category }) {
@@ -196,7 +218,8 @@ function ProductCard({ product, rank, category, isSelected, onToggleSelect, conv
   const hasVariants = product.variants?.length > 1;
   const currentVariant = hasVariants ? product.variants[activeVariant] : null;
   const displayPrice = currentVariant?.price || product.price;
-  const displayUrl = currentVariant?.url || product.url;
+  const rawUrl = currentVariant?.url || product.url;
+  const displayUrl = resolveUrl(rawUrl, product.brandUrl);
   const domain = getDomain(displayUrl);
 
   return (

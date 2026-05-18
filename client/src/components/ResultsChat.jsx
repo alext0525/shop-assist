@@ -1,14 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
-import { fetchJSON } from '../fetchJSON';
+import { streamSearch } from '../streamSearch';
 
-export default function ResultsChat({ category, mode, allQA, currentProducts, onProductsUpdate }) {
+export default function ResultsChat({ category, mode, allQA, currentProducts, onProductsUpdate, region }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
     { role: 'assistant', text: `Not quite right? Tell me what you'd like to change — e.g. "show me cheaper options", "I prefer wireless", or "the first one looks too big".` }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [streamStatus, setStreamStatus] = useState('');
   const bottomRef = useRef(null);
+  const accumulatedRef = useRef([]);
 
   useEffect(() => {
     if (open) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -20,19 +22,41 @@ export default function ResultsChat({ category, mode, allQA, currentProducts, on
     setInput('');
     setMessages(prev => [...prev, { role: 'user', text }]);
     setLoading(true);
+    accumulatedRef.current = [];
 
     try {
-      const data = await fetchJSON('/api/search/refine', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category, mode, originalQA: allQA, currentProducts, feedback: text }),
+      await streamSearch({
+        url: '/api/search/refine/stream',
+        body: {
+          category, mode,
+          originalQA: allQA,
+          currentProducts,
+          feedback: text,
+          country: region?.country,
+          stores: region?.stores,
+        },
+        onStatus: ({ label }) => setStreamStatus(label),
+        onMessage: ({ message }) => {
+          setMessages(prev => [...prev, { role: 'assistant', text: message }]);
+        },
+        onProduct: (product) => {
+          accumulatedRef.current = [...accumulatedRef.current, product];
+          onProductsUpdate(accumulatedRef.current);
+        },
+        onDone: () => {
+          setLoading(false);
+          setStreamStatus('');
+        },
+        onError: ({ message }) => {
+          setMessages(prev => [...prev, { role: 'assistant', text: `Sorry, something went wrong. ${message}` }]);
+          setLoading(false);
+          setStreamStatus('');
+        },
       });
-      setMessages(prev => [...prev, { role: 'assistant', text: data.message }]);
-      if (data.products?.length) onProductsUpdate(data.products);
     } catch (err) {
       setMessages(prev => [...prev, { role: 'assistant', text: `Sorry, I couldn't refine the results right now. ${err.message}` }]);
-    } finally {
       setLoading(false);
+      setStreamStatus('');
     }
   }
 
@@ -41,7 +65,6 @@ export default function ResultsChat({ category, mode, allQA, currentProducts, on
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between px-5 py-4 transition-all"
-        style={{ background: open ? 'var(--surface)' : 'var(--surface)' }}
       >
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm bg-gradient-to-br from-violet-500 to-pink-500">
@@ -77,14 +100,11 @@ export default function ResultsChat({ category, mode, allQA, currentProducts, on
               </div>
             ))}
             {loading && (
-              <div className="flex justify-start">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0 mr-2 bg-gradient-to-br from-violet-500 to-pink-500">✨</div>
-                <div className="px-4 py-3 rounded-2xl text-sm" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
-                  <div className="flex gap-1 items-center h-4">
-                    {[0,1,2].map(i => (
-                      <div key={i} className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
-                    ))}
-                  </div>
+              <div className="flex justify-start items-center gap-2">
+                <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0 bg-gradient-to-br from-violet-500 to-pink-500">✨</div>
+                <div className="px-4 py-3 rounded-2xl text-xs flex items-center gap-2" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                  <div className="w-3 h-3 rounded-full border-2 border-transparent flex-shrink-0" style={{ borderTopColor: 'var(--accent)', animation: 'spin .8s linear infinite' }} />
+                  {streamStatus || 'Thinking…'}
                 </div>
               </div>
             )}

@@ -21,8 +21,8 @@ export async function searchProducts(query) {
 }
 
 export async function searchMultiple(queries) {
-  // Run all queries in parallel, cap at 6 queries to keep it fast
-  const capped = queries.slice(0, 6);
+  // Run all queries in parallel, cap at 7 queries to keep it fast
+  const capped = queries.slice(0, 7);
   const settled = await Promise.allSettled(capped.map(searchProducts));
 
   const allResults = [];
@@ -41,5 +41,5 @@ export async function searchMultiple(queries) {
     }
   }
 
-  return { results: allResults, images: [...new Set(allImages)].slice(0, 12) };
+  return { results: allResults, images: [...new Set(allImages)].slice(0, 20) };
 }
