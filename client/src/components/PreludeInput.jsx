@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { getTranslations } from '../i18n';
 
 const LABELS = {
   keyboard: 'Keyboard', backpack: 'Backpack', gpu: 'Graphics Card', headphones: 'Headphones',
@@ -41,9 +42,10 @@ function toTitleCase(str) {
   return str.replace(/\b\w/g, c => c.toUpperCase());
 }
 
-export default function PreludeInput({ category, mode, onContinue, onBack }) {
+export default function PreludeInput({ category, mode, language, onContinue, onBack }) {
   const [text, setText] = useState('');
   const textRef = useRef(null);
+  const t = getTranslations(language);
   const label = LABELS[category] || toTitleCase(category);
   const hint = HINTS[category] || `e.g. must-have features, deal-breakers, preferred style or material, specific use case…`;
   const hasText = text.trim().length > 0;
@@ -67,7 +69,7 @@ export default function PreludeInput({ category, mode, onContinue, onBack }) {
           {mode === 'vague' ? '⚡ Quick Match' : '🎯 Deep Dive'} · {label}
         </div>
         <h1 className="text-2xl font-extrabold tracking-tight mb-2" style={{ color: 'var(--text)' }}>
-          Anything we should know upfront?
+          {t.anythingToKnow}
         </h1>
         <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
           Describe key requirements, must-haves, or deal-breakers in your own words.
@@ -80,7 +82,7 @@ export default function PreludeInput({ category, mode, onContinue, onBack }) {
         style={{ background: 'var(--surface)', border: `1.5px solid ${hasText ? 'var(--accent)' : 'var(--border)'}`, boxShadow: hasText ? 'var(--glow-sm)' : 'var(--shadow-md)', transition: 'border-color .2s, box-shadow .2s' }}>
         <div className="flex items-center gap-2">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          <span className="text-xs font-semibold" style={{ color: 'var(--text-faint)' }}>Your brief (optional)</span>
+          <span className="text-xs font-semibold" style={{ color: 'var(--text-faint)' }}>{t.yourBrief}</span>
         </div>
         <textarea
           ref={textRef}
@@ -116,7 +118,7 @@ export default function PreludeInput({ category, mode, onContinue, onBack }) {
           className="px-5 rounded-xl text-sm font-medium"
           style={{ border: '1px solid var(--border)', color: 'var(--text-muted)', background: 'var(--surface)', minHeight: 52 }}
         >
-          Back
+          {t.back}
         </button>
         <button
           onClick={() => onContinue(text.trim())}
@@ -124,9 +126,9 @@ export default function PreludeInput({ category, mode, onContinue, onBack }) {
           style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-2))', minHeight: 52 }}
         >
           {hasText ? (
-            <>Continue <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg></>
+            <>{t.continueLabel} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg></>
           ) : (
-            <>Skip <span style={{ opacity: 0.7, fontSize: '0.75rem' }}>/ No description</span> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg></>
+            <>{t.skipNoBrief} <span style={{ opacity: 0.7, fontSize: '0.75rem' }}>/ No description</span> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg></>
           )}
         </button>
       </div>

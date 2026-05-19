@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import CompareModal from './CompareModal';
 import ResultsChat from './ResultsChat';
+import { getTranslations } from '../i18n';
 
 const LABELS = {
   keyboard: 'Keyboard', backpack: 'Backpack', gpu: 'Graphics Card',
@@ -69,6 +70,7 @@ function EmojiPlaceholder({ category }) {
 export default function ProductResults({ products, setProducts, marketSummary, category, mode, allQA, onReset, convertPrice = p => p, region, streaming = false, searchStatus = '' }) {
   const [selected, setSelected] = useState(new Set());
   const [showCompare, setShowCompare] = useState(false);
+  const t = getTranslations(region?.language);
 
   function toggleSelect(i) {
     setSelected(prev => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n; });
@@ -112,7 +114,7 @@ export default function ProductResults({ products, setProducts, marketSummary, c
             {region && ` · ${region.flag} ${region.country}`}
           </span>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--text)' }}>
-            {streaming ? `${products.length} result${products.length !== 1 ? 's' : ''} found…` : `Your Top ${products.length} Picks`}
+            {streaming ? t.streaming(products.length) : t.topPicks(products.length)}
           </h1>
         </div>
         <button onClick={onReset} className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium" style={{ border: '1px solid var(--border)', color: 'var(--text-muted)', background: 'var(--surface)' }}>
@@ -137,7 +139,7 @@ export default function ProductResults({ products, setProducts, marketSummary, c
           <div className="rounded-2xl p-5" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow)' }}>
             <div className="flex items-center gap-2 mb-3">
               <span className="text-base">📋</span>
-              <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>Your answers</span>
+              <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{t.yourAnswers}</span>
             </div>
             <div className="flex flex-col gap-1.5">
               {answeredQA.map((qa, i) => (
@@ -155,7 +157,7 @@ export default function ProductResults({ products, setProducts, marketSummary, c
           <div className="rounded-2xl p-5" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow)' }}>
             <div className="flex items-center gap-2 mb-3">
               <span className="text-base">📊</span>
-              <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>Market overview</span>
+              <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{t.marketOverview}</span>
             </div>
             <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>{marketSummary}</p>
           </div>
@@ -163,9 +165,7 @@ export default function ProductResults({ products, setProducts, marketSummary, c
       </div>
 
       {!streaming && (
-        <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
-          Tick cards to compare side by side · Click to view on retailer site
-        </p>
+        <p className="text-xs" style={{ color: 'var(--text-faint)' }}>{t.tickCards}</p>
       )}
 
       {/* Product grid — cards animate in as they arrive */}
@@ -179,6 +179,7 @@ export default function ProductResults({ products, setProducts, marketSummary, c
             isSelected={selected.has(i)}
             onToggleSelect={() => toggleSelect(i)}
             convertPrice={convertPrice}
+            t={t}
           />
         ))}
       </div>
@@ -210,10 +211,10 @@ export default function ProductResults({ products, setProducts, marketSummary, c
             <div className="text-white font-bold text-sm">{selected.size} selected</div>
             <div className="text-white/70 text-xs">Compare side by side</div>
           </div>
-          <button onClick={() => setSelected(new Set())} className="text-white/60 hover:text-white text-xs px-2 transition-colors">Clear</button>
+          <button onClick={() => setSelected(new Set())} className="text-white/60 hover:text-white text-xs px-2 transition-colors">{t.skip}</button>
           <button onClick={() => setShowCompare(true)} className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold bg-white hover:bg-white/90 transition-all" style={{ color: 'var(--accent)' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
-            Compare Now
+            {t.compareNow}
           </button>
         </div>
       )}
@@ -223,7 +224,7 @@ export default function ProductResults({ products, setProducts, marketSummary, c
   );
 }
 
-function ProductCard({ product, rank, category, isSelected, onToggleSelect, convertPrice }) {
+function ProductCard({ product, rank, category, isSelected, onToggleSelect, convertPrice, t }) {
   const [imgError, setImgError] = useState(false);
   const [activeVariant, setActiveVariant] = useState(0);
   const rs = RANK_STYLE[rank];
@@ -291,7 +292,7 @@ function ProductCard({ product, rank, category, isSelected, onToggleSelect, conv
         {/* Variants */}
         {hasVariants && (
           <div className="flex flex-col gap-1.5">
-            <p className="text-xs font-medium" style={{ color: 'var(--text-faint)' }}>Configurations:</p>
+            <p className="text-xs font-medium" style={{ color: 'var(--text-faint)' }}>{t?.configurations || 'Configurations:'}</p>
             {product.variants.map((v, i) => (
               <button
                 key={i}
@@ -314,7 +315,7 @@ function ProductCard({ product, rank, category, isSelected, onToggleSelect, conv
         {/* Community */}
         {(product.pros?.length > 0 || product.communityNote) && (
           <div className="rounded-xl p-3" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
-            <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--text)' }}>⭐ What people say</p>
+            <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--text)' }}>⭐ {t.whatPeopleSay}</p>
             {product.communityNote && <p className="text-xs italic mb-1.5" style={{ color: 'var(--text-muted)' }}>"{product.communityNote}"</p>}
             {product.pros?.slice(0, 2).map((p, i) => (
               <div key={i} className="flex gap-1.5 text-xs mb-0.5">
@@ -348,7 +349,7 @@ function ProductCard({ product, rank, category, isSelected, onToggleSelect, conv
           className="mt-auto flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-95"
           style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-2))' }}
         >
-          View Product
+          {t?.viewProduct || 'View Product'}
           {domain && <span className="text-white/60 text-xs font-normal">· {domain}</span>}
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         </a>

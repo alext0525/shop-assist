@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getTranslations } from '../i18n';
 
 const LABELS = {
   keyboard: 'Keyboard', backpack: 'Backpack', gpu: 'Graphics Card', headphones: 'Headphones',
@@ -60,8 +61,9 @@ function toTitleCase(str) {
   return str.replace(/\b\w/g, c => c.toUpperCase());
 }
 
-export default function ModeSelector({ category, onSelect, onBack }) {
+export default function ModeSelector({ category, language, onSelect, onBack }) {
   const [hovered, setHovered] = useState(null);
+  const t = getTranslations(language);
   const label = LABELS[category] || toTitleCase(category);
 
   return (
@@ -71,7 +73,7 @@ export default function ModeSelector({ category, onSelect, onBack }) {
           {label}
         </div>
         <h1 className="text-3xl font-extrabold tracking-tight mb-2" style={{ color: 'var(--text)' }}>
-          Choose your mode
+          {t.chooseMode}
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: 15 }}>
           How much do you already know about what you want?
@@ -109,7 +111,7 @@ export default function ModeSelector({ category, onSelect, onBack }) {
               </div>
 
               <div>
-                <div className="text-lg font-bold mb-0.5" style={{ color: isHovered ? m.color : 'var(--text)' }}>{m.title}</div>
+                <div className="text-lg font-bold mb-0.5" style={{ color: isHovered ? m.color : 'var(--text)' }}>{m.id === 'vague' ? t.quickMatch : t.deepDive}</div>
                 <div className="text-xs font-medium mb-2" style={{ color: 'var(--text-faint)' }}>{m.subtitle}</div>
                 <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--text-muted)' }}>{m.desc}</p>
                 <div className="flex flex-wrap gap-2">
@@ -133,7 +135,7 @@ export default function ModeSelector({ category, onSelect, onBack }) {
         onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
-        Back
+        {t.back}
       </button>
     </div>
   );

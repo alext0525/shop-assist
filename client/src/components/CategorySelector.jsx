@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { getTranslations } from '../i18n';
 
 // ─── Master category list ────────────────────────────────────────────────────
 const ALL_CATEGORIES = [
@@ -81,10 +82,11 @@ function hexToRgb(hex) {
 }
 
 // ─── Main component ──────────────────────────────────────────────────────────
-export default function CategorySelector({ onSelect }) {
+export default function CategorySelector({ onSelect, language }) {
   const [search, setSearch] = useState('');
   const [focused, setFocused] = useState(false);
   const inputRef = useRef(null);
+  const t = getTranslations(language);
 
   const query = search.toLowerCase().trim();
   const hasQuery = query.length > 0;
@@ -133,7 +135,7 @@ export default function CategorySelector({ onSelect }) {
           onChange={e => setSearch(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          placeholder="Search or type anything…"
+          placeholder={t.searchPlaceholder}
           style={{
             width: '100%', paddingLeft: 44, paddingRight: search ? 44 : 16,
             paddingTop: 16, paddingBottom: 16,
@@ -159,7 +161,7 @@ export default function CategorySelector({ onSelect }) {
 
       {/* ── Content: search results or grouped browse ─────── */}
       {hasQuery ? (
-        <SearchResults filtered={filtered} query={search.trim()} onSelect={onSelect} />
+        <SearchResults filtered={filtered} query={search.trim()} onSelect={onSelect} t={t} />
       ) : (
         <BrowseSections onSelect={onSelect} />
       )}
@@ -238,7 +240,7 @@ function CategoryTile({ cat, onSelect }) {
 }
 
 // ─── Search results ───────────────────────────────────────────────────────────
-function SearchResults({ filtered, query, onSelect }) {
+function SearchResults({ filtered, query, onSelect, t }) {
   return (
     <div className="flex flex-col gap-5 anim-fadein">
       {filtered.length === 0 ? (
@@ -246,13 +248,13 @@ function SearchResults({ filtered, query, onSelect }) {
           <p className="text-4xl">🔍</p>
           <div>
             <p className="font-semibold mb-1" style={{ color: 'var(--text)' }}>
-              No category matches for "{query}"
+              {t.noMatchFor(query)}
             </p>
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              We can still find the best one for you
+              {t.stillFindBest}
             </p>
           </div>
-          <CustomSearchButton query={query} onSelect={onSelect} large />
+          <CustomSearchButton query={query} onSelect={onSelect} t={t} large />
         </div>
       ) : (
         <>
@@ -262,7 +264,7 @@ function SearchResults({ filtered, query, onSelect }) {
             ))}
           </div>
           <div className="flex justify-center pt-1">
-            <CustomSearchButton query={query} onSelect={onSelect} />
+            <CustomSearchButton query={query} onSelect={onSelect} t={t} />
           </div>
         </>
       )}
@@ -304,7 +306,7 @@ function SearchTile({ cat, idx, onSelect }) {
 }
 
 // ─── Custom search button ─────────────────────────────────────────────────────
-function CustomSearchButton({ query, onSelect, large = false }) {
+function CustomSearchButton({ query, onSelect, t, large = false }) {
   const [hovered, setHovered] = useState(false);
   return (
     <button
@@ -328,10 +330,10 @@ function CustomSearchButton({ query, onSelect, large = false }) {
       </div>
       <div>
         <div className="font-bold" style={{ fontSize: large ? 14 : 12, color: 'var(--text)' }}>
-          Search for "<span style={{ color: 'var(--accent)' }}>{query}</span>"
+          {t.searchFor(query)}
         </div>
         <div className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
-          AI will ask questions and find the best options
+          {t.aiWillAsk}
         </div>
       </div>
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"

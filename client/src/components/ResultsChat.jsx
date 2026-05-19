@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { streamSearch } from '../streamSearch';
+import { getTranslations } from '../i18n';
 
 export default function ResultsChat({ category, mode, allQA, currentProducts, onProductsUpdate, region }) {
+  const t = getTranslations(region?.language);
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'assistant', text: `Not quite right? Tell me what you'd like to change — e.g. "show me cheaper options", "I prefer wireless", or "the first one looks too big".` }
+    { role: 'assistant', text: t.refineIntro }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -34,6 +36,7 @@ export default function ResultsChat({ category, mode, allQA, currentProducts, on
           feedback: text,
           country: region?.country,
           stores: region?.stores,
+          languageName: region?.languageName || 'English',
         },
         onStatus: ({ label }) => setStreamStatus(label),
         onMessage: ({ message }) => {
@@ -71,8 +74,8 @@ export default function ResultsChat({ category, mode, allQA, currentProducts, on
             ✨
           </div>
           <div className="text-left">
-            <div className="text-sm font-semibold" style={{ color: 'var(--text)' }}>Refine with AI</div>
-            <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Tell me what you'd like to change</div>
+            <div className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{t.refineWithAI}</div>
+            <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{t.refineSubtitle}</div>
           </div>
         </div>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--text-faint)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
@@ -116,7 +119,7 @@ export default function ResultsChat({ category, mode, allQA, currentProducts, on
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
-              placeholder="e.g. show me cheaper options, I prefer wireless..."
+              placeholder={t.refineHint}
               disabled={loading}
               className="flex-1 px-4 py-2.5 rounded-xl text-sm outline-none transition-all"
               style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text)' }}

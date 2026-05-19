@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.post('/next-question', async (req, res) => {
   try {
-    const { category, mode, previousQA = [], currencyCode, currencySymbol, currencyRate, userDescription } = req.body;
+    const { category, mode, previousQA = [], currencyCode, currencySymbol, currencyRate, userDescription, languageName } = req.body;
     if (!category || !mode) return res.status(400).json({ error: 'category and mode are required' });
 
     const result = await generateNextQuestion({
@@ -14,6 +14,7 @@ router.post('/next-question', async (req, res) => {
       currencySymbol: currencySymbol || '$',
       currencyRate: currencyRate || 1,
       userDescription: userDescription || '',
+      languageName: languageName || 'English',
     });
 
     res.json(result);

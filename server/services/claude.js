@@ -188,7 +188,7 @@ function extractBudget(previousQA) {
 
 // --- SINGLE-QUESTION GENERATION ---
 
-export async function generateNextQuestion({ category, mode, previousQA = [], currencyCode = 'USD', currencySymbol = '$', currencyRate = 1, userDescription = '' }) {
+export async function generateNextQuestion({ category, mode, previousQA = [], currencyCode = 'USD', currencySymbol = '$', currencyRate = 1, userDescription = '', languageName = 'English' }) {
   const isVague = mode === 'vague';
   const maxQ = isVague ? 3 : 12;
   const qNum = previousQA.length + 1;
@@ -300,13 +300,16 @@ function JEWELRY_TOPICS(type, extras) {
   const userDescNote = userDescription
     ? `User's initial brief: "${userDescription}"\nFactor this in — skip asking about anything already clearly stated here.\n\n`
     : '';
+  const langNote = languageName !== 'English'
+    ? `IMPORTANT: Ask the question and write all options in ${languageName}. Keep "No preference" as the LAST option always written exactly as "No preference" (English only — the app uses this as a sentinel). All other text must be in ${languageName}.\n\n`
+    : '';
 
   const prompt = `You are a shopping assistant. Generate the NEXT single question for buying a ${category}.
 
 ${modeNote}
 This is question ${qNum} of ${maxQ}.
 
-${userDescNote}${topicGuide}
+${langNote}${userDescNote}${topicGuide}
 
 Previous Q&A so far:
 ${context || 'None yet.'}
@@ -394,7 +397,7 @@ Return ONLY a JSON array of strings.`;
 
 // --- RANK AND FORMAT ---
 
-export async function rankAndFormatResults({ category, mode, previousQA, rawResults, images = [], feedback = null, country, stores, userDescription = '' }) {
+export async function rankAndFormatResults({ category, mode, previousQA, rawResults, images = [], feedback = null, country, stores, userDescription = '', languageName = 'English' }) {
   const isVague = mode === 'vague';
   const targetCount = isVague ? 10 : 7;
   const context = previousQA.map(qa => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
@@ -408,6 +411,9 @@ export async function rankAndFormatResults({ category, mode, previousQA, rawResu
     : '';
   const feedbackNote = feedback ? `User feedback: "${feedback}" — prioritise this.` : '';
   const descNote = userDescription ? `User's initial brief: "${userDescription}"` : '';
+  const langNote = languageName !== 'English'
+    ? `LANGUAGE: Write reason, pros, cons, communityNote, and specs in ${languageName}. Keep product names, brand names, and model numbers in their original form (English/brand language).`
+    : '';
 
   const isJewelry = category.startsWith('jewelry-');
   const jewelryExtra = isJewelry
@@ -424,6 +430,7 @@ export async function rankAndFormatResults({ category, mode, previousQA, rawResu
   const prompt = `You are a shopping expert for ${category}.
 
 ${descNote}
+${langNote}
 User: ${context}
 ${budgetRule} ${regionRule} ${feedbackNote}
 
@@ -518,7 +525,7 @@ function safeParseArray(text) {
 // --- STREAMING RANK AND FORMAT ---
 // Same prompt as rankAndFormatResults but streams each product as soon as Claude writes it
 
-export async function rankAndFormatResultsStreaming({ category, mode, previousQA, rawResults, images = [], feedback = null, country, stores, userDescription = '', onProduct }) {
+export async function rankAndFormatResultsStreaming({ category, mode, previousQA, rawResults, images = [], feedback = null, country, stores, userDescription = '', languageName = 'English', onProduct }) {
   const isVague = mode === 'vague';
   const targetCount = isVague ? 10 : 7;
   const context = previousQA.map(qa => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
@@ -530,6 +537,9 @@ export async function rankAndFormatResultsStreaming({ category, mode, previousQA
     ? `REGION: User is in ${country}. Prefer local retailers (${stores || country}).` : '';
   const feedbackNote = feedback ? `User feedback: "${feedback}" — prioritise this.` : '';
   const descNote = userDescription ? `User's initial brief: "${userDescription}"` : '';
+  const langNote = languageName !== 'English'
+    ? `LANGUAGE: Write reason, pros, cons, communityNote, and specs in ${languageName}. Keep product names, brand names, and model numbers in their original form.`
+    : '';
   const isJewelry = category.startsWith('jewelry-');
   const jewelryExtra = isJewelry
     ? `- communityNote MUST reference brand reputation from jewellery communities if found.` : '';
@@ -540,6 +550,7 @@ export async function rankAndFormatResultsStreaming({ category, mode, previousQA
 
   const prompt = `You are a shopping expert for ${category}.
 ${descNote}
+${langNote}
 User: ${context}
 ${budgetRule} ${regionRule} ${feedbackNote}
 Search results: ${JSON.stringify(trimmedResults)}
@@ -601,12 +612,12 @@ No markdown.`;
 
 // --- MARKET SUMMARY ---
 
-export async function generateMarketSummary({ category, previousQA, country }) {
+export async function generateMarketSummary({ category, previousQA, country, languageName = 'English' }) {
   const context = previousQA.map(qa => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n');
   const budget = extractBudget(previousQA);
   const regionNote = country ? `in ${country}` : '';
 
-  const prompt = `You are a shopping expert. Write a brief 2-3 sentence market overview for someone buying a ${category} ${regionNote}.
+  const prompt = `You are a shopping expert. Write a brief 2-3 sentence market overview for someone buying a ${category} ${regionNote}.${languageName !== 'English' ? ` Write entirely in ${languageName}.` : ''}
 
 Their profile:
 ${context}
@@ -625,7 +636,7 @@ Be specific and helpful. Plain text only, no bullet points.`;
 
 // --- REFINE ---
 
-export async function refineWithFeedback({ category, originalQA, currentProducts, feedback }) {
+export async function refineWithFeedback({ category, originalQA, currentProducts, feedback, languageName = 'English' }) {
   const context = originalQA.map(qa => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
   const budget = extractBudget(originalQA);
   const productsContext = currentProducts.map((p, i) => `${i + 1}. ${p.name}`).join('\n');
@@ -636,8 +647,8 @@ ${budget && budget !== 'No preference' ? `Budget: ${budget} — keep this constr
 Current results: ${productsContext}
 User feedback: "${feedback}"
 
-1. Acknowledge feedback warmly in 1-2 sentences.
-2. Generate 5-7 targeted search queries addressing the feedback.
+1. Acknowledge feedback warmly in 1-2 sentences${languageName !== 'English' ? ` written in ${languageName}` : ''}.
+2. Generate 5-7 targeted search queries addressing the feedback (always in English for best search results).
 
 Return ONLY valid JSON:
 {"message": "...", "queries": ["q1", "q2", "q3", "q4", "q5"]}`;

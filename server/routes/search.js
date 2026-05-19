@@ -14,7 +14,7 @@ function sse(res, event, data) {
 
 // Streaming endpoint — products arrive one by one
 router.post('/products/stream', async (req, res) => {
-  const { category, mode, previousQA, country, countryCode, stores, userDescription } = req.body;
+  const { category, mode, previousQA, country, countryCode, stores, userDescription, languageName } = req.body;
 
   if (!category || !mode || !previousQA) {
     return res.status(400).json({ error: 'category, mode, and previousQA are required' });
@@ -36,7 +36,7 @@ router.post('/products/stream', async (req, res) => {
     // Generate queries + market summary in parallel
     const [queries, marketSummary] = await Promise.all([
       generateSearchQueries({ category, mode, previousQA, country, stores, userDescription }),
-      generateMarketSummary({ category, previousQA, country }),
+      generateMarketSummary({ category, previousQA, country, languageName: languageName || 'English' }),
     ]);
 
     sse(res, 'summary', { marketSummary });
@@ -53,6 +53,7 @@ router.post('/products/stream', async (req, res) => {
 
     await rankAndFormatResultsStreaming({
       category, mode, previousQA, rawResults, images, country, stores, userDescription,
+      languageName: languageName || 'English',
       onProduct: (product) => sse(res, 'product', product),
     });
 
@@ -68,7 +69,7 @@ router.post('/products/stream', async (req, res) => {
 
 // Streaming refine — AI message arrives first, then products trickle in
 router.post('/refine/stream', async (req, res) => {
-  const { category, mode, originalQA, currentProducts, feedback, country, stores } = req.body;
+  const { category, mode, originalQA, currentProducts, feedback, country, stores, languageName } = req.body;
   if (!category || !feedback) {
     return res.status(400).json({ error: 'category and feedback are required' });
   }
@@ -85,7 +86,7 @@ router.post('/refine/stream', async (req, res) => {
   try {
     sse(res, 'status', { label: 'Thinking about your feedback…' });
 
-    const { message, queries } = await refineWithFeedback({ category, originalQA, currentProducts, feedback });
+    const { message, queries } = await refineWithFeedback({ category, originalQA, currentProducts, feedback, languageName: languageName || 'English' });
     sse(res, 'message', { message });
     sse(res, 'status', { label: 'Searching for better matches…' });
 
@@ -100,6 +101,7 @@ router.post('/refine/stream', async (req, res) => {
 
     await rankAndFormatResultsStreaming({
       category, mode, previousQA: originalQA, rawResults, images, feedback, country, stores,
+      languageName: languageName || 'English',
       onProduct: (product) => sse(res, 'product', product),
     });
 
@@ -122,7 +124,7 @@ router.post('/products', async (req, res) => {
     }
     const [queries, marketSummary] = await Promise.all([
       generateSearchQueries({ category, mode, previousQA, country, stores }),
-      generateMarketSummary({ category, previousQA, country }),
+      generateMarketSummary({ category, previousQA, country, languageName: languageName || 'English' }),
     ]);
     const { results: rawResults, images } = await searchMultiple(queries);
     if (rawResults.length === 0) return res.status(404).json({ error: 'No products found.' });

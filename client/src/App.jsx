@@ -37,6 +37,7 @@ export default function App() {
   });
 
   const { region, setRegion, convertPrice } = useCurrency();
+  const language = region?.language || 'en';
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', !isDark);
@@ -60,7 +61,7 @@ export default function App() {
     try {
       await streamSearch({
         url: '/api/search/products/stream',
-        body: { category, mode, previousQA: qa, userDescription, country: region.country, countryCode: region.code, stores: region.stores },
+        body: { category, mode, previousQA: qa, userDescription, language, languageName: region?.languageName || 'English', country: region.country, countryCode: region.code, stores: region.stores },
         onStatus:  ({ label }) => setSearchStatus(label),
         onSummary: ({ marketSummary }) => setMarketSummary(marketSummary),
         onProduct: (product) => setProducts(prev => [...prev, product]),
@@ -98,7 +99,7 @@ export default function App() {
       />
       <main className="flex-1 flex flex-col items-center px-4 pb-24">
         {stage === STAGES.CATEGORY && (
-          <CategorySelector onSelect={handleCategorySelect} />
+          <CategorySelector onSelect={handleCategorySelect} language={language} />
         )}
         {stage === STAGES.SUBCATEGORY && (
           <SubcategorySelector
@@ -110,6 +111,7 @@ export default function App() {
         {stage === STAGES.MODE && (
           <ModeSelector
             category={category}
+            language={language}
             onSelect={m => { setMode(m); setStage(STAGES.PRELUDE); }}
             onBack={() => setStage(HAS_SUBCATEGORY.has(category?.split('-')[0]) ? STAGES.SUBCATEGORY : STAGES.CATEGORY)}
           />
@@ -118,6 +120,7 @@ export default function App() {
           <PreludeInput
             category={category}
             mode={mode}
+            language={language}
             onContinue={(desc) => { setUserDescription(desc); setStage(STAGES.QUESTIONS); }}
             onBack={() => setStage(STAGES.MODE)}
           />
@@ -127,6 +130,7 @@ export default function App() {
             category={category}
             mode={mode}
             region={region}
+            language={language}
             userDescription={userDescription}
             onComplete={handleQuestionsComplete}
             onBack={() => setStage(STAGES.PRELUDE)}

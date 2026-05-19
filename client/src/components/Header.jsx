@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getTranslations } from '../i18n';
 import RegionModal from './RegionModal';
 
 function BagIcon() {
@@ -48,6 +49,7 @@ function ResetIcon() {
 
 export default function Header({ onReset, showReset, isDark, setIsDark, region, setRegion }) {
   const [showRegion, setShowRegion] = useState(false);
+  const t = getTranslations(region?.language);
 
   return (
     <>
@@ -108,7 +110,7 @@ export default function Header({ onReset, showReset, isDark, setIsDark, region, 
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
             >
               <ResetIcon />
-              <span className="hidden sm:inline">Start over</span>
+              <span className="hidden sm:inline">{t.startOver}</span>
             </button>
           )}
 

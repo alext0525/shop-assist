@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { fetchJSON } from '../fetchJSON';
+import { getTranslations } from '../i18n';
 
 const LABELS = {
   keyboard: 'Keyboard', backpack: 'Backpack', gpu: 'Graphics Card', headphones: 'Headphones',
@@ -27,7 +28,8 @@ function getCurrencySymbol(code) {
   return map[code] || (code + ' ');
 }
 
-export default function QuestionFlow({ category, mode, region, userDescription, onComplete, onBack, error }) {
+export default function QuestionFlow({ category, mode, region, language, userDescription, onComplete, onBack, error }) {
+  const t = getTranslations(language);
   const [currentQ, setCurrentQ] = useState(null);
   const [selected, setSelected] = useState([]);   // multi-select for option questions
   const [textAnswer, setTextAnswer] = useState(''); // free-text (for text-only) or "add more" for option questions
@@ -56,6 +58,8 @@ export default function QuestionFlow({ category, mode, region, userDescription, 
           category, mode,
           previousQA: qa,
           userDescription: userDescription || '',
+          language: language || 'en',
+          languageName: region?.languageName || 'English',
           currencyCode: region?.currency || 'USD',
           currencySymbol: getCurrencySymbol(region?.currency),
           currencyRate: 1,
@@ -193,6 +197,7 @@ export default function QuestionFlow({ category, mode, region, userDescription, 
                 {currentQ.options.map((opt, i) => {
                   const isSelected = selected.includes(opt);
                   const isNoPref = opt === 'No preference';
+                  const displayOpt = isNoPref ? t.noPreference : opt;
                   const letter = String.fromCharCode(65 + i);
                   return (
                     <button
@@ -217,7 +222,7 @@ export default function QuestionFlow({ category, mode, region, userDescription, 
                         {isSelected && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
                       </span>
                       <span className="flex-shrink-0 text-xs font-bold w-5 text-center" style={{ color: isSelected ? 'var(--accent)' : 'var(--text-faint)' }}>{letter}</span>
-                      <span className={isNoPref ? 'italic' : 'font-medium'}>{opt}</span>
+                      <span className={isNoPref ? 'italic' : 'font-medium'}>{displayOpt}</span>
                     </button>
                   );
                 })}
@@ -225,12 +230,12 @@ export default function QuestionFlow({ category, mode, region, userDescription, 
 
               {/* Always-visible custom text field */}
               <div>
-                <p className="text-xs mb-1.5 font-medium" style={{ color: 'var(--text-faint)' }}>Add your own details (optional):</p>
+                <p className="text-xs mb-1.5 font-medium" style={{ color: 'var(--text-faint)' }}>{t.addOwnDetails}</p>
                 <textarea
                   ref={textRef}
                   value={textAnswer}
                   onChange={e => setTextAnswer(e.target.value)}
-                  placeholder="Not listed / something else — type here..."
+                  placeholder={t.notListed}
                   rows={2}
                   className="w-full rounded-xl px-4 py-3 text-sm resize-none"
                   style={{
@@ -248,7 +253,7 @@ export default function QuestionFlow({ category, mode, region, userDescription, 
               {/* Selection summary */}
               {selected.filter(o => o !== 'No preference').length > 1 && (
                 <p className="text-xs" style={{ color: 'var(--accent-text)' }}>
-                  ✓ {selected.filter(o => o !== 'No preference').length} options selected
+                  {t.nSelected(selected.filter(o => o !== 'No preference').length)}
                 </p>
               )}
             </>
@@ -259,7 +264,7 @@ export default function QuestionFlow({ category, mode, region, userDescription, 
               value={textAnswer}
               onChange={e => setTextAnswer(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Type your answer, or click Skip to continue..."
+              placeholder={t.typeAnswer}
               rows={3}
               className="w-full rounded-xl px-4 py-3 text-sm resize-none"
               style={{
@@ -290,7 +295,7 @@ export default function QuestionFlow({ category, mode, region, userDescription, 
               className="px-5 rounded-xl text-sm font-medium"
               style={{ border: '1px solid var(--border)', color: 'var(--text-muted)', background: 'var(--surface)', minHeight: 52 }}
             >
-              Back
+              {t.back}
             </button>
           )}
           <button
@@ -300,11 +305,11 @@ export default function QuestionFlow({ category, mode, region, userDescription, 
             style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-2))', minHeight: 52 }}
           >
             {submitting ? (
-              <><div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Loading...</>
+              <><div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> {t.loading}</>
             ) : hasAnswer ? (
-              <>{qNum >= maxQ ? 'Find my products' : 'Next'} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg></>
+              <>{qNum >= maxQ ? t.findProducts : t.next} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg></>
             ) : (
-              <>Skip <span style={{ opacity: 0.7, fontSize: '0.75rem' }}>/ No preference</span> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg></>
+              <>{t.skip} <span style={{ opacity: 0.7, fontSize: '0.75rem' }}>/ {t.noPreference}</span> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg></>
             )}
           </button>
         </div>
