@@ -53,15 +53,9 @@ export function useCurrency() {
   const [preferredLanguage, setPreferredLanguageState] = useState(() => loadSavedLang());
 
   // User can override the region's default language independently
+  const LANG_NAMES = { en:'English', de:'German', fr:'French', nl:'Dutch', es:'Spanish', it:'Italian', pl:'Polish', sv:'Swedish', nb:'Norwegian', da:'Danish' };
   const language = preferredLanguage || region?.language || 'en';
-  const languageName = (() => {
-    // find the languageName for the active language code
-    const match = Object.values(region || {}).length && language === region?.language
-      ? region?.languageName
-      : null;
-    const LANG_NAMES = { en:'English', de:'German', fr:'French', nl:'Dutch', es:'Spanish', it:'Italian', pl:'Polish', sv:'Swedish', nb:'Norwegian', da:'Danish' };
-    return match || LANG_NAMES[language] || 'English';
-  })();
+  const languageName = LANG_NAMES[language] || 'English';
 
   // Fetch exchange rates once
   useEffect(() => {

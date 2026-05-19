@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { streamSearch } from '../streamSearch';
 import { getTranslations } from '../i18n';
 
-export default function ResultsChat({ category, mode, allQA, currentProducts, onProductsUpdate, region }) {
-  const t = getTranslations(region?.language);
+export default function ResultsChat({ category, mode, allQA, currentProducts, onProductsUpdate, region, language, languageName }) {
+  const t = getTranslations(language);
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
     { role: 'assistant', text: t.refineIntro }
@@ -36,7 +36,7 @@ export default function ResultsChat({ category, mode, allQA, currentProducts, on
           feedback: text,
           country: region?.country,
           stores: region?.stores,
-          languageName: region?.languageName || 'English',
+          languageName: languageName || 'English',
         },
         onStatus: ({ label }) => setStreamStatus(label),
         onMessage: ({ message }) => {

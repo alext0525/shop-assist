@@ -67,10 +67,10 @@ function EmojiPlaceholder({ category }) {
   );
 }
 
-export default function ProductResults({ products, setProducts, marketSummary, category, mode, allQA, onReset, convertPrice = p => p, region, streaming = false, searchStatus = '' }) {
+export default function ProductResults({ products, setProducts, marketSummary, category, mode, allQA, onReset, convertPrice = p => p, region, language, languageName, streaming = false, searchStatus = '' }) {
   const [selected, setSelected] = useState(new Set());
   const [showCompare, setShowCompare] = useState(false);
-  const t = getTranslations(region?.language);
+  const t = getTranslations(language);
 
   function toggleSelect(i) {
     setSelected(prev => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n; });
@@ -201,6 +201,8 @@ export default function ProductResults({ products, setProducts, marketSummary, c
           currentProducts={products}
           onProductsUpdate={p => { setProducts(p); setSelected(new Set()); }}
           region={region}
+          language={language}
+          languageName={languageName}
         />
       )}
 

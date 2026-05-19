@@ -150,6 +150,8 @@ export default function App() {
             onReset={handleReset}
             convertPrice={convertPrice}
             region={region}
+            language={language}
+            languageName={languageName}
             streaming={streaming}
             searchStatus={searchStatus}
           />
