@@ -47,9 +47,9 @@ function ResetIcon() {
   );
 }
 
-export default function Header({ onReset, showReset, isDark, setIsDark, region, setRegion }) {
+export default function Header({ onReset, showReset, isDark, setIsDark, region, setRegion, language, setLanguage }) {
   const [showRegion, setShowRegion] = useState(false);
-  const t = getTranslations(region?.language);
+  const t = getTranslations(language);
 
   return (
     <>
@@ -127,7 +127,7 @@ export default function Header({ onReset, showReset, isDark, setIsDark, region, 
         </div>
       </header>
 
-      {showRegion && <RegionModal region={region} setRegion={setRegion} onClose={() => setShowRegion(false)} />}
+      {showRegion && <RegionModal region={region} setRegion={setRegion} language={language} setLanguage={setLanguage} onClose={() => setShowRegion(false)} />}
     </>
   );
 }

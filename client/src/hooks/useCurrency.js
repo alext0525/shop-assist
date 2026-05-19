@@ -30,6 +30,10 @@ function loadSaved() {
   return null;
 }
 
+function loadSavedLang() {
+  try { return localStorage.getItem('shoplang') || null; } catch { return null; }
+}
+
 async function autoDetect() {
   const apis = [
     async () => { const d = await (await fetch('https://ipwho.is/')).json(); if (!d.success) throw 0; return d.country_code; },
@@ -46,6 +50,18 @@ export function useCurrency() {
   const [region, setRegionState] = useState(() => loadSaved() || DEFAULT_REGION);
   const [rates, setRates] = useState({});
   const [detected, setDetected] = useState(false);
+  const [preferredLanguage, setPreferredLanguageState] = useState(() => loadSavedLang());
+
+  // User can override the region's default language independently
+  const language = preferredLanguage || region?.language || 'en';
+  const languageName = (() => {
+    // find the languageName for the active language code
+    const match = Object.values(region || {}).length && language === region?.language
+      ? region?.languageName
+      : null;
+    const LANG_NAMES = { en:'English', de:'German', fr:'French', nl:'Dutch', es:'Spanish', it:'Italian', pl:'Polish', sv:'Swedish', nb:'Norwegian', da:'Danish' };
+    return match || LANG_NAMES[language] || 'English';
+  })();
 
   // Fetch exchange rates once
   useEffect(() => {
@@ -68,6 +84,14 @@ export function useCurrency() {
   function setRegion(r) {
     setRegionState(r);
     localStorage.setItem('shopregion', JSON.stringify(r));
+    // When user explicitly picks a new region, clear language override so
+    // the new region's default language applies (unless user has already
+    // set a language override, in which case keep it)
+  }
+
+  function setLanguage(code) {
+    setPreferredLanguageState(code);
+    localStorage.setItem('shoplang', code);
   }
 
   function convertPrice(priceStr) {
@@ -90,5 +114,5 @@ export function useCurrency() {
     return prefix + formatted;
   }
 
-  return { region, setRegion, convertPrice, detected };
+  return { region, setRegion, convertPrice, detected, language, languageName, setLanguage };
 }

@@ -412,6 +412,20 @@ const T = {
   },
 };
 
+// Available languages for the picker — name shown in their own language
+export const LANGUAGES = [
+  { code: 'en', label: 'English',    flag: '🇬🇧' },
+  { code: 'nl', label: 'Nederlands', flag: '🇳🇱' },
+  { code: 'de', label: 'Deutsch',    flag: '🇩🇪' },
+  { code: 'fr', label: 'Français',   flag: '🇫🇷' },
+  { code: 'es', label: 'Español',    flag: '🇪🇸' },
+  { code: 'it', label: 'Italiano',   flag: '🇮🇹' },
+  { code: 'pl', label: 'Polski',     flag: '🇵🇱' },
+  { code: 'sv', label: 'Svenska',    flag: '🇸🇪' },
+  { code: 'nb', label: 'Norsk',      flag: '🇳🇴' },
+  { code: 'da', label: 'Dansk',      flag: '🇩🇰' },
+];
+
 export function getTranslations(langCode) {
   return T[langCode] || T.en;
 }

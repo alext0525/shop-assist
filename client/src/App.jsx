@@ -36,8 +36,7 @@ export default function App() {
     return saved ? saved === 'dark' : true;
   });
 
-  const { region, setRegion, convertPrice } = useCurrency();
-  const language = region?.language || 'en';
+  const { region, setRegion, convertPrice, language, languageName, setLanguage } = useCurrency();
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', !isDark);
@@ -61,7 +60,7 @@ export default function App() {
     try {
       await streamSearch({
         url: '/api/search/products/stream',
-        body: { category, mode, previousQA: qa, userDescription, language, languageName: region?.languageName || 'English', country: region.country, countryCode: region.code, stores: region.stores },
+        body: { category, mode, previousQA: qa, userDescription, language, languageName, country: region.country, countryCode: region.code, stores: region.stores },
         onStatus:  ({ label }) => setSearchStatus(label),
         onSummary: ({ marketSummary }) => setMarketSummary(marketSummary),
         onProduct: (product) => setProducts(prev => [...prev, product]),
@@ -96,6 +95,8 @@ export default function App() {
         setIsDark={setIsDark}
         region={region}
         setRegion={setRegion}
+        language={language}
+        setLanguage={setLanguage}
       />
       <main className="flex-1 flex flex-col items-center px-4 pb-24">
         {stage === STAGES.CATEGORY && (
@@ -131,6 +132,7 @@ export default function App() {
             mode={mode}
             region={region}
             language={language}
+            languageName={languageName}
             userDescription={userDescription}
             onComplete={handleQuestionsComplete}
             onBack={() => setStage(STAGES.PRELUDE)}
