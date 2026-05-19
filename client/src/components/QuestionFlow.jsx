@@ -15,6 +15,7 @@ const LABELS = {
   'headphones-over-ear': 'Over-ear Headphones', 'headphones-tws': 'True Wireless Earbuds',
   'headphones-in-ear': 'In-ear / IEM', 'headphones-on-ear': 'On-ear Headphones',
   'headphones-gaming': 'Gaming Headset', 'air-fryer': 'Air Fryer',
+  'gaming-console': 'Gaming Console', 'robot-vacuum': 'Robot Vacuum', 'coffee-machine': 'Coffee Machine',
 };
 
 function toTitleCase(str) {

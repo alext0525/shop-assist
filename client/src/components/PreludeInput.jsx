@@ -14,6 +14,7 @@ const LABELS = {
   'headphones-over-ear': 'Over-ear Headphones', 'headphones-tws': 'True Wireless Earbuds',
   'headphones-in-ear': 'In-ear / IEM', 'headphones-on-ear': 'On-ear Headphones',
   'headphones-gaming': 'Gaming Headset', 'air-fryer': 'Air Fryer',
+  'gaming-console': 'Gaming Console', 'robot-vacuum': 'Robot Vacuum', 'coffee-machine': 'Coffee Machine',
 };
 
 // Category-aware placeholder hints
@@ -30,7 +31,10 @@ const HINTS = {
   'office-chair':  'e.g. I sit 8+ hours a day, have lower back issues, prefer mesh for breathing',
   backpack:        'e.g. daily commute + laptop 15", waterproof preferred, minimalist look',
   tv:              'e.g. for a dark living room, primarily movies and gaming on PS5',
-  'air-fryer':     'e.g. family of 4, want dual basket, must be dishwasher safe',
+  'air-fryer':      'e.g. family of 4, want dual basket, must be dishwasher safe',
+  'gaming-console': "e.g. I'm on PlayStation already, want something for single-player story games",
+  'robot-vacuum':   'e.g. mix of hardwood and carpet, have a dog, want auto-empty base',
+  'coffee-machine': 'e.g. want proper espresso and flat whites, beans not pods, compact size',
 };
 
 function toTitleCase(str) {

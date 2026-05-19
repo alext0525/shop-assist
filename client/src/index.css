@@ -164,6 +164,10 @@ textarea,input { font-family:inherit }
 textarea:focus,input:focus { outline:none }
 button { min-height:44px; cursor:pointer }
 
+/* ── Scroll utilities ───────────────────────────────────── */
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
 /* ── Glass card mixin ───────────────────────────────────── */
 .glass {
   background:rgba(15,21,39,.7);

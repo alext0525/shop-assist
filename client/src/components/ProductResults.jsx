@@ -18,6 +18,7 @@ const LABELS = {
   'headphones-over-ear': 'Over-ear Headphones', 'headphones-tws': 'True Wireless Earbuds',
   'headphones-in-ear': 'In-ear / IEM', 'headphones-on-ear': 'On-ear Headphones',
   'headphones-gaming': 'Gaming Headset', 'air-fryer': 'Air Fryer',
+  'gaming-console': 'Gaming Console', 'robot-vacuum': 'Robot Vacuum', 'coffee-machine': 'Coffee Machine',
 };
 
 const RANK_STYLE = {
@@ -56,6 +57,7 @@ function EmojiPlaceholder({ category }) {
     cpu: '🔲', motherboard: '🔧', ram: '🧩', ssd: '💿', psu: '⚡', 'pc-case': '🗃️', 'cpu-cooler': '❄️',
     'headphones-over-ear': '🎧', 'headphones-tws': '🎵', 'headphones-in-ear': '🎶',
     'headphones-on-ear': '🎼', 'headphones-gaming': '🕹️', 'air-fryer': '🍟',
+    'gaming-console': '🕹️', 'robot-vacuum': '🤖', 'coffee-machine': '☕',
   };
   return (
     <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--surface-2)' }}>
