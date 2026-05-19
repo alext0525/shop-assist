@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { REGIONS } from '../hooks/useCurrency';
-import { LANGUAGES } from '../i18n';
+import { LANGUAGES, getTranslations } from '../i18n';
 
 export default function RegionModal({ region, setRegion, language, setLanguage, onClose }) {
   const ref = useRef(null);
+  const t = getTranslations(language);
 
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
@@ -18,8 +19,8 @@ export default function RegionModal({ region, setRegion, language, setLanguage, 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
           <div>
-            <h2 className="text-base font-bold" style={{ color: 'var(--text)' }}>Region & Language</h2>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Prices, stores and AI language can be set independently</p>
+            <h2 className="text-base font-bold" style={{ color: 'var(--text)' }}>{t.regionTitle}</h2>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{t.regionDesc}</p>
           </div>
           <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -30,7 +31,7 @@ export default function RegionModal({ region, setRegion, language, setLanguage, 
           {/* ── Region list ──────────────────────────────── */}
           <div className="px-3 pt-3 pb-1">
             <p className="text-xs font-bold uppercase tracking-wider px-1 pb-2" style={{ color: 'var(--text-faint)' }}>
-              🌍 Region & Currency
+              {t.regionSection}
             </p>
             {REGIONS.map((r) => {
               const isSelected = r.code === region.code;
@@ -65,10 +66,10 @@ export default function RegionModal({ region, setRegion, language, setLanguage, 
           {/* ── Language picker ───────────────────────────── */}
           <div className="px-3 pt-2 pb-4" style={{ borderTop: '1px solid var(--border)', marginTop: 4 }}>
             <p className="text-xs font-bold uppercase tracking-wider px-1 pt-3 pb-2" style={{ color: 'var(--text-faint)' }}>
-              💬 App Language
+              {t.langSection}
             </p>
             <p className="text-xs px-1 mb-3" style={{ color: 'var(--text-muted)' }}>
-              Overrides your region's default. Questions and recommendations will be in this language.
+              {t.langDesc}
             </p>
             <div className="grid grid-cols-2 gap-2">
               {LANGUAGES.map((lang) => {

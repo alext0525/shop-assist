@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import { getTranslations } from '../i18n';
 
 const CONFIG = {
   jewelry: {
     emoji: '💍',
     glow: 'rgba(244,114,182,.4)',
-    title: 'What type of jewellery?',
-    subtitle: "We'll ask about brands, quality, and community reputation.",
+    titleKey: 'jewelryTitle',
+    subtitleKey: 'jewelrySubtitle',
     items: [
       { id: 'jewelry-rings',    label: 'Rings',        emoji: '💍', description: 'Engagement, wedding, fashion, signet', color: '#F472B6' },
       { id: 'jewelry-necklace', label: 'Necklaces',    emoji: '📿', description: 'Chains, pendants, chokers',            color: '#F472B6' },
@@ -19,8 +20,8 @@ const CONFIG = {
   headphones: {
     emoji: '🎧',
     glow: 'rgba(99,102,241,.4)',
-    title: 'What type of headphones?',
-    subtitle: 'Pick the form factor that suits your use.',
+    titleKey: 'headphonesTitle',
+    subtitleKey: 'headphonesSubtitle',
     items: [
       { id: 'headphones-over-ear', label: 'Over-ear',       emoji: '🎧', description: 'Closed & open-back, ANC, studio',        color: '#6366F1' },
       { id: 'headphones-tws',      label: 'True Wireless',  emoji: '🎵', description: 'AirPods, Galaxy Buds, wireless earbuds',  color: '#8B5CF6' },
@@ -36,8 +37,9 @@ function hexToRgb(hex) {
   return `${r},${g},${b}`;
 }
 
-export default function SubcategorySelector({ category, onSelect, onBack }) {
+export default function SubcategorySelector({ category, language, onSelect, onBack }) {
   const [hovered, setHovered] = useState(null);
+  const t = getTranslations(language);
   const conf = CONFIG[category];
 
   if (!conf) return null;
@@ -47,9 +49,9 @@ export default function SubcategorySelector({ category, onSelect, onBack }) {
       <div className="text-center">
         <div className="text-5xl mb-4" style={{ filter: `drop-shadow(0 0 20px ${conf.glow})` }}>{conf.emoji}</div>
         <h1 className="text-3xl font-extrabold tracking-tight mb-2" style={{ color: 'var(--text)' }}>
-          {conf.title}
+          {t[conf.titleKey] || conf.titleKey}
         </h1>
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{conf.subtitle}</p>
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{t[conf.subtitleKey] || conf.subtitleKey}</p>
       </div>
 
       <div className="w-full grid grid-cols-2 gap-3">
@@ -90,7 +92,7 @@ export default function SubcategorySelector({ category, onSelect, onBack }) {
         onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
-        Back to all categories
+        {t.backToAll || 'Back to all categories'}
       </button>
     </div>
   );

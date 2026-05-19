@@ -16,6 +16,11 @@ const LABELS = {
   'headphones-in-ear': 'In-ear / IEM', 'headphones-on-ear': 'On-ear Headphones',
   'headphones-gaming': 'Gaming Headset', 'air-fryer': 'Air Fryer',
   'gaming-console': 'Gaming Console', 'robot-vacuum': 'Robot Vacuum', 'coffee-machine': 'Coffee Machine',
+  'e-reader': 'E-Reader', 'action-camera': 'Action Camera', 'projector': 'Projector',
+  'dash-cam': 'Dash Cam', 'electric-toothbrush': 'Electric Toothbrush', 'electric-razor': 'Electric Razor',
+  'hair-dryer': 'Hair Dryer', 'vacuum-cleaner': 'Vacuum Cleaner', 'security-camera': 'Security Camera',
+  'portable-charger': 'Power Bank', 'standing-desk': 'Standing Desk', 'electric-scooter': 'Electric Scooter',
+  'blender': 'Blender', 'printer': 'Printer', 'smart-speaker': 'Smart Speaker',
 };
 
 // Category-aware placeholder hints
@@ -72,8 +77,7 @@ export default function PreludeInput({ category, mode, language, onContinue, onB
           {t.anythingToKnow}
         </h1>
         <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-          Describe key requirements, must-haves, or deal-breakers in your own words.
-          The AI will build its questions around what you write here.
+          {t.preludeDesc}
         </p>
       </div>
 
@@ -105,7 +109,7 @@ export default function PreludeInput({ category, mode, language, onContinue, onB
         />
         {hasText && (
           <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
-            Ctrl+Enter to continue
+            {t.ctrlEnter}
           </p>
         )}
       </div>

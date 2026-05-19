@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import CompareModal from './CompareModal';
 import ResultsChat from './ResultsChat';
-import { getTranslations } from '../i18n';
+import { getTranslations, translateStatus } from '../i18n';
 
 const LABELS = {
   keyboard: 'Keyboard', backpack: 'Backpack', gpu: 'Graphics Card',
@@ -20,6 +20,11 @@ const LABELS = {
   'headphones-in-ear': 'In-ear / IEM', 'headphones-on-ear': 'On-ear Headphones',
   'headphones-gaming': 'Gaming Headset', 'air-fryer': 'Air Fryer',
   'gaming-console': 'Gaming Console', 'robot-vacuum': 'Robot Vacuum', 'coffee-machine': 'Coffee Machine',
+  'e-reader': 'E-Reader', 'action-camera': 'Action Camera', 'projector': 'Projector',
+  'dash-cam': 'Dash Cam', 'electric-toothbrush': 'Electric Toothbrush', 'electric-razor': 'Electric Razor',
+  'hair-dryer': 'Hair Dryer', 'vacuum-cleaner': 'Vacuum Cleaner', 'security-camera': 'Security Camera',
+  'portable-charger': 'Power Bank', 'standing-desk': 'Standing Desk', 'electric-scooter': 'Electric Scooter',
+  'blender': 'Blender', 'printer': 'Printer', 'smart-speaker': 'Smart Speaker',
 };
 
 const RANK_STYLE = {
@@ -59,6 +64,11 @@ function EmojiPlaceholder({ category }) {
     'headphones-over-ear': '🎧', 'headphones-tws': '🎵', 'headphones-in-ear': '🎶',
     'headphones-on-ear': '🎼', 'headphones-gaming': '🕹️', 'air-fryer': '🍟',
     'gaming-console': '🕹️', 'robot-vacuum': '🤖', 'coffee-machine': '☕',
+    'e-reader': '📖', 'action-camera': '🎬', 'projector': '🎥', 'dash-cam': '🚗',
+    'electric-toothbrush': '🦷', 'electric-razor': '⚡', 'hair-dryer': '💨',
+    'vacuum-cleaner': '🌀', 'security-camera': '📷', 'portable-charger': '🔋',
+    'standing-desk': '🪵', 'electric-scooter': '🛴', 'blender': '🥤',
+    'printer': '🖨️', 'smart-speaker': '🔊',
   };
   return (
     <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--surface-2)' }}>
@@ -93,8 +103,8 @@ export default function ProductResults({ products, setProducts, marketSummary, c
           </svg>
         </div>
         <div className="text-center">
-          <p className="text-base font-semibold mb-1" style={{ color: 'var(--text)' }}>{searchStatus || 'Searching…'}</p>
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>First results will appear in a moment</p>
+          <p className="text-base font-semibold mb-1" style={{ color: 'var(--text)' }}>{translateStatus(searchStatus, t) || t.statusSearching}</p>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{t.findingMore}</p>
         </div>
         <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--surface-2)' }}>
           <div className="h-full rounded-full" style={{ width: '40%', background: 'var(--gradient)', boxShadow: '0 0 10px rgba(99,102,241,.5)', animation: 'shimmer 1.8s linear infinite', backgroundSize: '400px 100%' }} />
@@ -129,7 +139,7 @@ export default function ProductResults({ products, setProducts, marketSummary, c
           <path d="m10.29 3.86-8.6 14.9A2 2 0 0 0 3.45 22h17.1a2 2 0 0 0 1.74-2.93l-8.6-14.9a2 2 0 0 0-3.4 0z"/>
           <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
         </svg>
-        <span>Prices and availability are <strong>approximate</strong> — always verify on the product page before purchasing. Links go directly to retailer listings.</span>
+        <span>{t.disclaimer}</span>
       </div>
 
       {/* Summary cards */}
@@ -188,7 +198,7 @@ export default function ProductResults({ products, setProducts, marketSummary, c
       {streaming && (
         <div className="flex items-center justify-center gap-3 py-4 anim-fadein">
           <div className="w-4 h-4 rounded-full border-2 border-transparent" style={{ borderTopColor: 'var(--accent)', animation: 'spin .8s linear infinite' }} />
-          <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{searchStatus || 'Finding more results…'}</span>
+          <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{translateStatus(searchStatus, t) || t.findingMore}</span>
         </div>
       )}
 
@@ -210,8 +220,8 @@ export default function ProductResults({ products, setProducts, marketSummary, c
       {!streaming && selected.size >= 2 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 px-6 py-4 rounded-2xl" style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-2))', boxShadow: '0 8px 32px rgba(109,40,217,0.4)', minWidth: 320 }}>
           <div className="flex-1">
-            <div className="text-white font-bold text-sm">{selected.size} selected</div>
-            <div className="text-white/70 text-xs">Compare side by side</div>
+            <div className="text-white font-bold text-sm">{t.compareCount(selected.size)}</div>
+            <div className="text-white/70 text-xs">{t.compareSide}</div>
           </div>
           <button onClick={() => setSelected(new Set())} className="text-white/60 hover:text-white text-xs px-2 transition-colors">{t.skip}</button>
           <button onClick={() => setShowCompare(true)} className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold bg-white hover:bg-white/90 transition-all" style={{ color: 'var(--accent)' }}>
@@ -221,7 +231,7 @@ export default function ProductResults({ products, setProducts, marketSummary, c
         </div>
       )}
 
-      {showCompare && <CompareModal products={[...selected].map(i => products[i])} onClose={() => setShowCompare(false)} convertPrice={convertPrice} />}
+      {showCompare && <CompareModal products={[...selected].map(i => products[i])} onClose={() => setShowCompare(false)} convertPrice={convertPrice} t={t} />}
     </div>
   );
 }

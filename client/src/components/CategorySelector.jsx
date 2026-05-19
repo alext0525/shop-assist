@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { getTranslations } from '../i18n';
+import { getTranslations, translateStatus } from '../i18n';
 
 // ─── Master category list ────────────────────────────────────────────────────
 const ALL_CATEGORIES = [
@@ -36,6 +36,22 @@ const ALL_CATEGORIES = [
   { id: 'tablet',         label: 'Tablet',          emoji: '📋', description: 'iPad, Android, drawing tablets',       color: '#F59E0B' },
   { id: 'tripod',         label: 'Tripod',          emoji: '📷', description: 'Travel, studio, video',                color: '#A78BFA' },
   { id: 'tv',             label: 'TV',              emoji: '📺', description: '4K, OLED, QLED, smart TVs',           color: '#94A3B8' },
+  // New 15 categories
+  { id: 'e-reader',           label: 'E-Reader',          emoji: '📖', description: 'Kindle, Kobo, e-ink readers',          color: '#F59E0B' },
+  { id: 'action-camera',      label: 'Action Camera',     emoji: '🎬', description: 'GoPro, Insta360, waterproof sports',    color: '#A78BFA' },
+  { id: 'projector',          label: 'Projector',         emoji: '🎥', description: 'Home cinema, portable, laser, UST',     color: '#64748B' },
+  { id: 'dash-cam',           label: 'Dash Cam',          emoji: '🚗', description: 'Front & rear dashcam, GPS, parking',    color: '#64748B' },
+  { id: 'electric-toothbrush',label: 'Electric Toothbrush',emoji: '🦷', description: 'Oral-B, Philips Sonicare, sonic',     color: '#06B6D4' },
+  { id: 'electric-razor',     label: 'Electric Razor',    emoji: '⚡', description: 'Foil vs rotary, Braun, Philips',        color: '#6366F1' },
+  { id: 'hair-dryer',         label: 'Hair Dryer',        emoji: '💨', description: 'Dyson Supersonic, ionic, diffuser',     color: '#F472B6' },
+  { id: 'vacuum-cleaner',     label: 'Vacuum Cleaner',    emoji: '🌀', description: 'Dyson cordless, Miele, HEPA, pet hair', color: '#94A3B8' },
+  { id: 'security-camera',    label: 'Security Camera',   emoji: '📷', description: 'Ring, Arlo, Eufy, indoor/outdoor',      color: '#64748B' },
+  { id: 'portable-charger',   label: 'Power Bank',        emoji: '🔋', description: 'Anker, GaN charger, MagSafe battery',  color: '#10B981' },
+  { id: 'standing-desk',      label: 'Standing Desk',     emoji: '🪵', description: 'FlexiSpot, electric sit-stand, motorized', color: '#92400E' },
+  { id: 'electric-scooter',   label: 'Electric Scooter',  emoji: '🛴', description: 'Xiaomi, Segway, foldable, commuter',   color: '#10B981' },
+  { id: 'blender',            label: 'Blender',           emoji: '🥤', description: 'Vitamix, Nutribullet, Ninja, smoothies',color: '#F97316' },
+  { id: 'printer',            label: 'Printer',           emoji: '🖨️', description: 'Laser, inkjet, all-in-one, EcoTank',   color: '#6366F1' },
+  { id: 'smart-speaker',      label: 'Smart Speaker',     emoji: '🔊', description: 'Echo, Nest, HomePod, Sonos',            color: '#06B6D4' },
 ];
 
 const CAT_BY_ID = Object.fromEntries(ALL_CATEGORIES.map(c => [c.id, c]));
@@ -48,30 +64,38 @@ const GROUPS = [
   },
   {
     id: 'pc', emoji: '💻', label: 'PC & Computing',
-    ids: ['gpu', 'cpu', 'motherboard', 'ram', 'ssd', 'psu', 'pc-case', 'cpu-cooler', 'keyboard', 'mouse', 'monitor', 'laptop'],
+    ids: ['gpu', 'cpu', 'motherboard', 'ram', 'ssd', 'psu', 'pc-case', 'cpu-cooler', 'keyboard', 'mouse', 'monitor', 'laptop', 'printer'],
   },
   {
     id: 'audio', emoji: '🎵', label: 'Audio',
-    ids: ['headphones', 'speakers', 'microphone'],
+    ids: ['headphones', 'speakers', 'microphone', 'smart-speaker'],
   },
   {
     id: 'mobile', emoji: '📱', label: 'Mobile & Wearables',
-    ids: ['smartphone', 'tablet', 'smartwatch'],
+    ids: ['smartphone', 'tablet', 'smartwatch', 'e-reader', 'portable-charger'],
   },
   {
     id: 'home', emoji: '🏠', label: 'Home & Kitchen',
-    ids: ['tv', 'office-chair', 'air-fryer', 'robot-vacuum', 'coffee-machine'],
+    ids: ['tv', 'office-chair', 'air-fryer', 'robot-vacuum', 'coffee-machine', 'vacuum-cleaner', 'blender', 'smart-speaker', 'security-camera', 'projector'],
   },
   {
     id: 'camera', emoji: '📸', label: 'Photo & Video',
-    ids: ['tripod', 'camera-flash', 'camera-storage', 'field-monitor', 'camera-filter', 'microphone'],
+    ids: ['tripod', 'camera-flash', 'camera-storage', 'field-monitor', 'camera-filter', 'microphone', 'action-camera'],
+  },
+  {
+    id: 'lifestyle', emoji: '✨', label: 'Lifestyle & Appliances',
+    ids: ['electric-toothbrush', 'electric-razor', 'hair-dryer', 'standing-desk', 'printer'],
   },
   {
     id: 'sports', emoji: '🏃', label: 'Sports & Outdoor',
-    ids: ['bike', 'running-shoes', 'backpack'],
+    ids: ['bike', 'running-shoes', 'backpack', 'electric-scooter'],
   },
   {
-    id: 'fashion', emoji: '✨', label: 'Fashion',
+    id: 'transport', emoji: '🚗', label: 'Transport',
+    ids: ['electric-scooter', 'dash-cam', 'bike'],
+  },
+  {
+    id: 'fashion', emoji: '💎', label: 'Fashion',
     ids: ['jewelry'],
   },
 ];
@@ -108,16 +132,16 @@ export default function CategorySelector({ onSelect, language }) {
       >
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-4"
           style={{ background: 'var(--accent-light)', color: 'var(--accent-text)', border: '1px solid var(--border)' }}>
-          AI-powered shopping
+          {t.aiPowered}
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-2" style={{
           background: 'linear-gradient(135deg, #E2E8F0 0%, #A5B4FC 50%, #67E8F9 100%)',
           WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1.2,
         }}>
-          What are you<br className="sm:hidden" /> shopping for?
+          {t.heroTitle}
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
-          {ALL_CATEGORIES.length} categories · search or browse below
+          {t.heroSubtitle(ALL_CATEGORIES.length)}
         </p>
       </div>
 
@@ -163,14 +187,14 @@ export default function CategorySelector({ onSelect, language }) {
       {hasQuery ? (
         <SearchResults filtered={filtered} query={search.trim()} onSelect={onSelect} t={t} />
       ) : (
-        <BrowseSections onSelect={onSelect} />
+        <BrowseSections onSelect={onSelect} t={t} />
       )}
     </div>
   );
 }
 
 // ─── Browse — grouped horizontal scroll rows ─────────────────────────────────
-function BrowseSections({ onSelect }) {
+function BrowseSections({ onSelect, t }) {
   return (
     <div className="flex flex-col gap-8 anim-fadeup">
       {GROUPS.map(group => {
@@ -180,7 +204,7 @@ function BrowseSections({ onSelect }) {
             <div className="flex items-center gap-2 mb-3 px-0.5">
               <span style={{ fontSize: 16 }}>{group.emoji}</span>
               <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>
-                {group.label}
+                {t.groups?.[group.id] || group.label}
               </h2>
             </div>
             {/* Horizontal scroll row — hidden scrollbar, snap on mobile */}

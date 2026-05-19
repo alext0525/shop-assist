@@ -17,6 +17,11 @@ const LABELS = {
   'headphones-in-ear': 'In-ear / IEM', 'headphones-on-ear': 'On-ear Headphones',
   'headphones-gaming': 'Gaming Headset', 'air-fryer': 'Air Fryer',
   'gaming-console': 'Gaming Console', 'robot-vacuum': 'Robot Vacuum', 'coffee-machine': 'Coffee Machine',
+  'e-reader': 'E-Reader', 'action-camera': 'Action Camera', 'projector': 'Projector',
+  'dash-cam': 'Dash Cam', 'electric-toothbrush': 'Electric Toothbrush', 'electric-razor': 'Electric Razor',
+  'hair-dryer': 'Hair Dryer', 'vacuum-cleaner': 'Vacuum Cleaner', 'security-camera': 'Security Camera',
+  'portable-charger': 'Power Bank', 'standing-desk': 'Standing Desk', 'electric-scooter': 'Electric Scooter',
+  'blender': 'Blender', 'printer': 'Printer', 'smart-speaker': 'Smart Speaker',
 };
 
 function toTitleCase(str) {
@@ -68,7 +73,7 @@ export default function QuestionFlow({ category, mode, region, language, languag
       if (data.done) { onComplete(qa); }
       else { setCurrentQ(data); }
     } catch (err) {
-      setFetchError(err.message || 'Could not reach the server.');
+      setFetchError(err.message || t.couldNotReach);
     } finally {
       setLoading(false);
     }
@@ -169,7 +174,7 @@ export default function QuestionFlow({ category, mode, region, language, languag
       {(fetchError || error) && (
         <div className="p-4 rounded-xl text-sm flex items-start justify-between gap-3" style={{ background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.25)', color: 'var(--red)' }}>
           <span>{fetchError || error}</span>
-          {fetchError && <button onClick={() => loadNext(allQA)} className="underline text-xs flex-shrink-0">Retry</button>}
+          {fetchError && <button onClick={() => loadNext(allQA)} className="underline text-xs flex-shrink-0">{t.retry}</button>}
         </div>
       )}
 

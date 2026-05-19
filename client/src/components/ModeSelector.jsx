@@ -16,6 +16,11 @@ const LABELS = {
   'headphones-in-ear': 'In-ear / IEM', 'headphones-on-ear': 'On-ear Headphones',
   'headphones-gaming': 'Gaming Headset', 'air-fryer': 'Air Fryer',
   'gaming-console': 'Gaming Console', 'robot-vacuum': 'Robot Vacuum', 'coffee-machine': 'Coffee Machine',
+  'e-reader': 'E-Reader', 'action-camera': 'Action Camera', 'projector': 'Projector',
+  'dash-cam': 'Dash Cam', 'electric-toothbrush': 'Electric Toothbrush', 'electric-razor': 'Electric Razor',
+  'hair-dryer': 'Hair Dryer', 'vacuum-cleaner': 'Vacuum Cleaner', 'security-camera': 'Security Camera',
+  'portable-charger': 'Power Bank', 'standing-desk': 'Standing Desk', 'electric-scooter': 'Electric Scooter',
+  'blender': 'Blender', 'printer': 'Printer', 'smart-speaker': 'Smart Speaker',
 };
 
 function LightningIcon() {
@@ -76,7 +81,7 @@ export default function ModeSelector({ category, language, onSelect, onBack }) {
           {t.chooseMode}
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: 15 }}>
-          How much do you already know about what you want?
+          {t.howMuch}
         </p>
       </div>
 
@@ -112,10 +117,13 @@ export default function ModeSelector({ category, language, onSelect, onBack }) {
 
               <div>
                 <div className="text-lg font-bold mb-0.5" style={{ color: isHovered ? m.color : 'var(--text)' }}>{m.id === 'vague' ? t.quickMatch : t.deepDive}</div>
-                <div className="text-xs font-medium mb-2" style={{ color: 'var(--text-faint)' }}>{m.subtitle}</div>
-                <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--text-muted)' }}>{m.desc}</p>
+                <div className="text-xs font-medium mb-2" style={{ color: 'var(--text-faint)' }}>{m.id === 'vague' ? t.quickMatchSub : t.deepDiveSub}</div>
+                <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--text-muted)' }}>{m.id === 'vague' ? t.quickMatchDesc : t.deepDiveDesc}</p>
                 <div className="flex flex-wrap gap-2">
-                  {m.chips.map(chip => (
+                  {(m.id === 'vague'
+                    ? [t.threeQ, t.tenResults, t.twoMin]
+                    : [t.twelveQ, t.sevenResults, t.fiveMin]
+                  ).map(chip => (
                     <span key={chip} className="text-xs px-2.5 py-1 rounded-full font-semibold"
                       style={{ background: `rgba(${m.rgb},.12)`, color: m.color, border: `1px solid rgba(${m.rgb},.25)` }}>
                       {chip}

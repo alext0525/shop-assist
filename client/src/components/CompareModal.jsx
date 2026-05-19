@@ -1,12 +1,14 @@
 import { useEffect } from 'react';
 
-export default function CompareModal({ products, onClose }) {
+export default function CompareModal({ products, onClose, convertPrice, t = {} }) {
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
     document.body.style.overflow = 'hidden';
     return () => { window.removeEventListener('keydown', handler); document.body.style.overflow = ''; };
   }, [onClose]);
+
+  const tl = (key, fallback) => t[key] || fallback;
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-8 overflow-y-auto" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)' }} onClick={onClose}>
@@ -15,8 +17,8 @@ export default function CompareModal({ products, onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4" style={{ background: 'linear-gradient(135deg, #7c3aed, #db2777)' }}>
           <div>
-            <h2 className="text-lg font-bold text-white">Side-by-side Comparison</h2>
-            <p className="text-white/70 text-xs">{products.length} products · Press Esc to close</p>
+            <h2 className="text-lg font-bold text-white">{tl('compareTitle', 'Side-by-side Comparison')}</h2>
+            <p className="text-white/70 text-xs">{tl('compareEsc', (n) => `${n} products · Press Esc to close`)(products.length)}</p>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/20 hover:bg-white/30 transition-all text-white">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -25,10 +27,9 @@ export default function CompareModal({ products, onClose }) {
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm" style={{ minWidth: `${180 + products.length * 220}px` }}>
-            {/* Product headers */}
             <thead>
               <tr style={{ borderBottom: '2px solid var(--border)' }}>
-                <th className="px-5 py-4 text-left w-40 text-xs uppercase tracking-wider font-semibold" style={{ color: 'var(--text-muted)', background: 'var(--surface-2)' }}>Feature</th>
+                <th className="px-5 py-4 text-left w-40 text-xs uppercase tracking-wider font-semibold" style={{ color: 'var(--text-muted)', background: 'var(--surface-2)' }}>{tl('featureCol', 'Feature')}</th>
                 {products.map((p, i) => (
                   <th key={i} className="px-5 py-4 text-left align-top" style={{ background: 'var(--surface)' }}>
                     <div className="flex flex-col gap-2">
@@ -38,7 +39,7 @@ export default function CompareModal({ products, onClose }) {
                       <div className="font-bold text-sm leading-snug" style={{ color: 'var(--text)' }}>{p.name}</div>
                       {p.price && <span className="text-sm font-bold" style={{ color: '#16a34a' }}>{p.price}</span>}
                       <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold flex items-center gap-1" style={{ color: '#7c3aed' }} onClick={e => e.stopPropagation()}>
-                        View product <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        {tl('viewProduct', 'View product')} <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                       </a>
                     </div>
                   </th>
@@ -47,8 +48,7 @@ export default function CompareModal({ products, onClose }) {
             </thead>
 
             <tbody>
-              {/* Match score */}
-              <Row label="Match Score" alt>
+              <Row label={tl('matchScore', 'Match Score')} alt>
                 {products.map((p, i) => (
                   <td key={i} className="px-5 py-3">
                     <div className="flex items-center gap-2">
@@ -61,15 +61,13 @@ export default function CompareModal({ products, onClose }) {
                 ))}
               </Row>
 
-              {/* Why it fits */}
-              <Row label="Why it fits">
+              <Row label={tl('whyItFits', 'Why it fits')}>
                 {products.map((p, i) => (
                   <td key={i} className="px-5 py-3 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>{p.reason}</td>
                 ))}
               </Row>
 
-              {/* Community note */}
-              <Row label="Community says" alt>
+              <Row label={tl('communitySays', 'Community says')} alt>
                 {products.map((p, i) => (
                   <td key={i} className="px-5 py-3 text-xs italic leading-relaxed" style={{ color: 'var(--text-muted)' }}>
                     {p.communityNote ? `"${p.communityNote}"` : '—'}
@@ -77,8 +75,7 @@ export default function CompareModal({ products, onClose }) {
                 ))}
               </Row>
 
-              {/* Pros */}
-              <Row label="Pros">
+              <Row label={tl('prosLabel', 'Pros')}>
                 {products.map((p, i) => (
                   <td key={i} className="px-5 py-3">
                     <div className="flex flex-col gap-1">
@@ -93,8 +90,7 @@ export default function CompareModal({ products, onClose }) {
                 ))}
               </Row>
 
-              {/* Cons */}
-              <Row label="Cons" alt>
+              <Row label={tl('consLabel', 'Cons')} alt>
                 {products.map((p, i) => (
                   <td key={i} className="px-5 py-3">
                     <div className="flex flex-col gap-1">
@@ -109,8 +105,7 @@ export default function CompareModal({ products, onClose }) {
                 ))}
               </Row>
 
-              {/* Specs */}
-              <Row label="Key Specs">
+              <Row label={tl('keySpecs', 'Key Specs')}>
                 {products.map((p, i) => (
                   <td key={i} className="px-5 py-3">
                     <div className="flex flex-wrap gap-1.5">

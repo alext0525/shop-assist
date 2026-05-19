@@ -51,13 +51,13 @@ export default function ResultsChat({ category, mode, allQA, currentProducts, on
           setStreamStatus('');
         },
         onError: ({ message }) => {
-          setMessages(prev => [...prev, { role: 'assistant', text: `Sorry, something went wrong. ${message}` }]);
+          setMessages(prev => [...prev, { role: 'assistant', text: `${t.sorryWentWrong} ${message}` }]);
           setLoading(false);
           setStreamStatus('');
         },
       });
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'assistant', text: `Sorry, I couldn't refine the results right now. ${err.message}` }]);
+      setMessages(prev => [...prev, { role: 'assistant', text: `${t.couldNotRefine} ${err.message}` }]);
       setLoading(false);
       setStreamStatus('');
     }

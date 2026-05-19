@@ -54,7 +54,7 @@ export default function App() {
     setMarketSummary('');
     setError(null);
     setStreaming(true);
-    setSearchStatus('Searching the web…');
+    setSearchStatus('Searching the web…'); // server will override immediately; client translates in ProductResults
     setStage(STAGES.RESULTS); // go to results immediately — products trickle in
 
     try {
@@ -105,6 +105,7 @@ export default function App() {
         {stage === STAGES.SUBCATEGORY && (
           <SubcategorySelector
             category={category}
+            language={language}
             onSelect={sub => { setCategory(sub); setStage(STAGES.MODE); }}
             onBack={() => setStage(STAGES.CATEGORY)}
           />
