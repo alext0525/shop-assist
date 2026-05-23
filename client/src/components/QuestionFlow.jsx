@@ -22,6 +22,7 @@ const LABELS = {
   'hair-dryer': 'Hair Dryer', 'vacuum-cleaner': 'Vacuum Cleaner', 'security-camera': 'Security Camera',
   'portable-charger': 'Power Bank', 'standing-desk': 'Standing Desk', 'electric-scooter': 'Electric Scooter',
   'blender': 'Blender', 'printer': 'Printer', 'smart-speaker': 'Smart Speaker',
+  webcam: 'Webcam', 'air-purifier': 'Air Purifier',
 };
 
 function toTitleCase(str) {

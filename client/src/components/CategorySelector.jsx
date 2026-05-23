@@ -52,6 +52,8 @@ const ALL_CATEGORIES = [
   { id: 'blender',            label: 'Blender',           emoji: '🥤', description: 'Vitamix, Nutribullet, Ninja, smoothies',color: '#F97316' },
   { id: 'printer',            label: 'Printer',           emoji: '🖨️', description: 'Laser, inkjet, all-in-one, EcoTank',   color: '#6366F1' },
   { id: 'smart-speaker',      label: 'Smart Speaker',     emoji: '🔊', description: 'Echo, Nest, HomePod, Sonos',            color: '#06B6D4' },
+  { id: 'webcam',             label: 'Webcam',            emoji: '📸', description: 'Streaming, WFH, video calls, 4K',         color: '#6366F1' },
+  { id: 'air-purifier',       label: 'Air Purifier',      emoji: '🌿', description: 'HEPA, Dyson, Levoit, Coway, Blueair',     color: '#10B981' },
 ];
 
 const CAT_BY_ID = Object.fromEntries(ALL_CATEGORIES.map(c => [c.id, c]));
@@ -64,7 +66,7 @@ const GROUPS = [
   },
   {
     id: 'pc', emoji: '💻', label: 'PC & Computing',
-    ids: ['gpu', 'cpu', 'motherboard', 'ram', 'ssd', 'psu', 'pc-case', 'cpu-cooler', 'keyboard', 'mouse', 'monitor', 'laptop', 'printer'],
+    ids: ['gpu', 'cpu', 'motherboard', 'ram', 'ssd', 'psu', 'pc-case', 'cpu-cooler', 'keyboard', 'mouse', 'monitor', 'laptop', 'printer', 'webcam'],
   },
   {
     id: 'audio', emoji: '🎵', label: 'Audio',
@@ -76,7 +78,7 @@ const GROUPS = [
   },
   {
     id: 'home', emoji: '🏠', label: 'Home & Kitchen',
-    ids: ['tv', 'office-chair', 'air-fryer', 'robot-vacuum', 'coffee-machine', 'vacuum-cleaner', 'blender', 'smart-speaker', 'security-camera', 'projector'],
+    ids: ['tv', 'office-chair', 'air-fryer', 'robot-vacuum', 'coffee-machine', 'vacuum-cleaner', 'blender', 'smart-speaker', 'security-camera', 'projector', 'air-purifier'],
   },
   {
     id: 'camera', emoji: '📸', label: 'Photo & Video',
